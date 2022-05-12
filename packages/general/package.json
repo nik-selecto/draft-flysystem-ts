@@ -27,5 +27,7 @@
   },
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
-  }
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }

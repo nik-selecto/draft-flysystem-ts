@@ -1,6 +1,15 @@
 {
   "dependencies": {
-    "lerna": "^4.0.0"
+    "file-type": "^14.7.1",
+    "lerna": "^4.0.0",
+    "mime": "^3.0.0"
   },
-  "name": "draft-flysystem-ts"
+  "name": "draft-flysystem-ts",
+  "devDependencies": {
+    "@types/node": "^17.0.32",
+    "typescript": "^4.6.4"
+  },
+  "scripts": {
+    "publish": "npx lerna run build && npx lerna publish"
+  }
 }

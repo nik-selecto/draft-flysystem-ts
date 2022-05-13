@@ -1,6 +1,6 @@
 {
   "name": "@draft-flysystem-ts/flysystem",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "> TODO: description",
   "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
   "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
@@ -26,7 +26,7 @@
     "build": "npx tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@draft-flysystem-ts/general": "^0.1.1"
+    "@draft-flysystem-ts/general": "^0.1.2"
   },
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"

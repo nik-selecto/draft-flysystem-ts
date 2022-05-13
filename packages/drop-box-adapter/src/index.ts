@@ -1,1 +1,1 @@
-export * from './dro-box.adapter';
+export * from './drop-box.adapter';

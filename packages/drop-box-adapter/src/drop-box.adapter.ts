@@ -114,39 +114,54 @@ export class DropboxAdapter implements IFilesystemAdapter {
         console.log(byteLength);
         const maxSize = 150 * 1_000_000;
         let start = 0;
+        let end = maxSize;
 
         if (byteLength > maxSize) {
-            const firstChunk = buff.slice(start, maxSize);
+            const firstChunk = buff.slice(start, end);
             const { result: { session_id } } = await this.dbx.filesUploadSessionStart({ close: false, contents: firstChunk });
 
-            console.log(firstChunk);
-            console.log(session_id);
+            console.log('session_id', session_id);
 
             start += maxSize;
+            end = byteLength - start - maxSize;
 
             const chunks = [];
 
-            while ((byteLength - (start + maxSize)) > 0) {
-                const buffy = buff.slice(start, maxSize);
+            while (true) {
+                let _end = +end;
+                if (end === 0) break;
+                 
+                const buffy = buff.slice(start, _end);
+                console.log('start', start);
+                console.log('end', _end);
+                console.log('buffy', buffy.byteLength);
 
                 chunks.push(this.dbx.filesUploadSessionAppendV2({
                     cursor: {
                         session_id,
                         offset: start,
-                        contents: buffy,
                     },
+                    contents: buffy,
                 }).then((res) => {
                     console.log(...Object.entries(res));
                 }));
+
+                start += maxSize;
+                end = byteLength - start -maxSize;
+
+                if (end < 0 || end === 0) break;
             }
 
-            // const promiseChain = chunks.reduce((prev, next) => {
-            //     return prev.then(() => next.then());
-            // });
+            const promiseChain = chunks.reduce((prev, next) => {
+                return prev.then((_res) => {
+                    console.log(_res);
+                    return next.then()
+                });
+            });
 
-            // await promiseChain;
+            await promiseChain;
 
-            await Promise.all(chunks);
+            // await Promise.all(chunks);
         } else {
             const res = await this.dbx.filesUpload({ path: `/${path}`, contents });
 

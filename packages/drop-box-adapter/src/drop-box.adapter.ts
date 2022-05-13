@@ -1,4 +1,5 @@
-import { FileAttributes, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
+import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 import { DropboxOptions, Dropbox } from 'dropbox';
@@ -34,12 +35,36 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     }
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        const res = await this.dbx.filesListFolder({ path })
+        const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path })
 
-        console.log(res);
+        console.log('headers =>', headers);
+        console.log('status =>', status);
 
-        // TODO !!!
-        return null as any;
+        return entries.reduce((acc, item) => {
+            if (item['.tag'] === 'deleted') return acc;
+
+            const data = {
+                path: item.name,
+            };
+            
+            if (item['.tag'] === 'file') acc.push({
+                ...data,
+                size: item.size,
+                visibility: item.is_downloadable ? Visibility.PUBLIC : Visibility.PRIVATE, // TODO is it realy about visibility
+                isDir: false,
+                isFile: true,
+                type: FileType.file,
+                lastModified: moment(item.client_modified).unix(), // TODO check 'item.server_modified',
+            });
+            else if (item[".tag"] === 'folder') acc.push({
+                ...data,
+                isDir: true,
+                isFile: false,
+                type: FileType.dir,
+            });
+
+            return acc;
+        }, [] as IStorageAttributes[]);
     }
     getPathPrefix(): PathPrefixer {
         throw new Error('This method is not implemented yet');

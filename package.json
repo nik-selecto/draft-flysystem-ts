@@ -4,7 +4,8 @@
     "file-type": "^14.7.1",
     "lerna": "^4.0.0",
     "lodash": "^4.17.21",
-    "mime": "^3.0.0"
+    "mime": "^3.0.0",
+    "moment": "^2.29.3"
   },
   "name": "draft-flysystem-ts",
   "devDependencies": {

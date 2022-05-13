@@ -26,7 +26,8 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
-    "@draft-flysystem-ts/general": "^0.2.1"
+    "@draft-flysystem-ts/general": "^0.2.1",
+    "dropbox": "^10.29.0"
   },
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"

@@ -14,6 +14,9 @@
   "files": [
     "lib"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nik-selecto/draft-flysystem-ts.git"
@@ -27,5 +30,6 @@
   },
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
-  }
+  },
+  "gitHead": "0314eec849b4bdf064d77b8f2a7b0341bbfb94ac"
 }

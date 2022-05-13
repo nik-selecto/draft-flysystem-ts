@@ -25,24 +25,21 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     }
     async readStream(path: string, config?: Record<string, any> | undefined): Promise<ReadStream> {
-        const res = await this.dbx.filesGetTemporaryLink({ path });
+        throw new Error('This method is not implemented yet');
+
+    }
+    async read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
+        throw new Error('This method is not implemented yet');
+
+
+    }
+    async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
+        const res = await this.dbx.filesListFolder({ path })
 
         console.log(res);
 
         // TODO !!!
         return null as any;
-    }
-    async read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
-        const res = await this.dbx.filesDownload({ path });
-
-        console.log(res);
-
-        return JSON.stringify(res);
-
-    }
-    listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        throw new Error('This method is not implemented yet');
-
     }
     getPathPrefix(): PathPrefixer {
         throw new Error('This method is not implemented yet');

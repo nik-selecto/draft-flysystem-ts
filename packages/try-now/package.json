@@ -1,6 +1,6 @@
 {
   "name": "@draft-flysystem-ts/try-now",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "> TODO: description",
   "author": "nik <n.moiseienko@selectoglobal.com>",
   "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
@@ -31,9 +31,9 @@
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
   },
   "dependencies": {
-    "@draft-flysystem-ts/drop-box-adapter": "^0.2.13",
-    "@draft-flysystem-ts/flysystem": "^0.2.13",
-    "@draft-flysystem-ts/general": "^0.2.13"
+    "@draft-flysystem-ts/drop-box-adapter": "^0.2.14",
+    "@draft-flysystem-ts/flysystem": "^0.2.14",
+    "@draft-flysystem-ts/general": "^0.2.14"
   },
   "gitHead": "66b3b5b52761fbe18d37d9047cc1cc62cb33290d"
 }

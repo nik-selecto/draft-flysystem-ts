@@ -34,7 +34,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
 
     }
-    async listContents(path: string, deep: boolean = false): Promise<IStorageAttributes[]> {
+    async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
         const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep })
 
         console.log('deep =>', deep);

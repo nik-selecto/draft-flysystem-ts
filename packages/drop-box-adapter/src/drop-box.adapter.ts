@@ -43,11 +43,11 @@ export class DropboxAdapter implements IFilesystemAdapter {
             const data = {
                 path: item.name, // TODO name and path are not the same 
             };
-            
+
             if (item['.tag'] === 'file') acc.push({
                 ...data,
                 size: item.size,
-                visibility: item.is_downloadable ? Visibility.PUBLIC : Visibility.PRIVATE, // TODO is it realy about visibility
+                // visibility: ... TODO it looks like drop-box has not such option
                 isDir: false,
                 isFile: true,
                 type: FileType.file,
@@ -107,6 +107,50 @@ export class DropboxAdapter implements IFilesystemAdapter {
         // TODO upload with sessions
         // TODO visibility
         // ??? why any response ???
-        await this.dbx.filesUpload({ path: `/${path}`, contents });
+        const buff = typeof contents === 'string'
+            ? Buffer.from(contents)
+            : contents;
+        const { byteLength } = buff;
+        console.log(byteLength);
+        const maxSize = 150 * 1_000_000;
+        let start = 0;
+
+        if (byteLength > maxSize) {
+            const firstChunk = buff.slice(start, maxSize);
+            const { result: { session_id } } = await this.dbx.filesUploadSessionStart({ close: false, contents: firstChunk });
+
+            console.log(firstChunk);
+            console.log(session_id);
+
+            start += maxSize;
+
+            const chunks = [];
+
+            while ((byteLength - (start + maxSize)) > 0) {
+                const buffy = buff.slice(start, maxSize);
+
+                chunks.push(this.dbx.filesUploadSessionAppendV2({
+                    cursor: {
+                        session_id,
+                        offset: start,
+                        contents: buffy,
+                    },
+                }).then((res) => {
+                    console.log(...Object.entries(res));
+                }));
+            }
+
+            // const promiseChain = chunks.reduce((prev, next) => {
+            //     return prev.then(() => next.then());
+            // });
+
+            // await promiseChain;
+
+            await Promise.all(chunks);
+        } else {
+            const res = await this.dbx.filesUpload({ path: `/${path}`, contents });
+
+            console.log(res);
+        }
     }
 }

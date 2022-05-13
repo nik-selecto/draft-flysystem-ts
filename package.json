@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dotenv": "^16.0.1",
     "dropbox": "^10.29.0",
     "file-type": "^14.7.1",
     "lerna": "^4.0.0",
@@ -10,6 +11,7 @@
   "name": "draft-flysystem-ts",
   "devDependencies": {
     "@nestjs/common": "^8.4.4",
+    "@types/dotenv": "^8.2.0",
     "@types/lodash": "^4.14.182",
     "@types/mime": "^2.0.3",
     "@types/node": "^17.0.32",

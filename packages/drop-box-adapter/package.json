@@ -1,6 +1,6 @@
 {
   "name": "@draft-flysystem-ts/drop-box-adapter",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "> TODO: description",
   "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
   "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
@@ -32,5 +32,5 @@
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
   },
-  "gitHead": "1cf6e1b9ac6eaa1ee58fc61b48250c4d40263cbc"
+  "gitHead": "2b0232536fca1cc6f407d6a9b176a921847eda73"
 }

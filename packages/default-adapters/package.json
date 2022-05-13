@@ -1,0 +1,31 @@
+{
+  "name": "@draft-flysystem-ts/default-adapters",
+  "version": "0.0.1",
+  "description": "> TODO: description",
+  "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
+  "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nik-selecto/draft-flysystem-ts.git"
+  },
+  "scripts": {
+    "build": "npx tsc -p tsconfig.json",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "@draft-flysystem-ts/general": "^0"
+  },
+  "bugs": {
+    "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
+  }
+}

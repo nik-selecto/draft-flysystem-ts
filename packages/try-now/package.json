@@ -24,6 +24,9 @@
     "start": "node lib",
     "_i": "rm -fr node_modules dist && npm uninstall @draft-flysystem-ts/general @draft-flysystem-ts/default-adapters @draft-flysystem-ts/drop-box-adapter @draft-flysystem-ts/flysystem && npm i @draft-flysystem-ts/general @draft-flysystem-ts/default-adapters @draft-flysystem-ts/drop-box-adapter @draft-flysystem-ts/flysystem && npm i"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
   },
@@ -31,5 +34,6 @@
     "@draft-flysystem-ts/drop-box-adapter": "^0.2.11",
     "@draft-flysystem-ts/flysystem": "^0.2.1",
     "@draft-flysystem-ts/general": "^0.2.1"
-  }
+  },
+  "gitHead": "1cf6e1b9ac6eaa1ee58fc61b48250c4d40263cbc"
 }

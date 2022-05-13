@@ -31,9 +31,9 @@
     "url": "https://github.com/nik-selecto/draft-flysystem-ts/issues"
   },
   "dependencies": {
-    "@draft-flysystem-ts/drop-box-adapter": "^0.2.12",
-    "@draft-flysystem-ts/flysystem": "^0.2.1",
-    "@draft-flysystem-ts/general": "^0.2.1"
+    "@draft-flysystem-ts/drop-box-adapter": "^0.2.13",
+    "@draft-flysystem-ts/flysystem": "^0.2.13",
+    "@draft-flysystem-ts/general": "^0.2.13"
   },
   "gitHead": "2b0232536fca1cc6f407d6a9b176a921847eda73"
 }

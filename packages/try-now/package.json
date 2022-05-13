@@ -1,5 +1,5 @@
 {
-  "name": "try-now",
+  "name": "@draft-flysystem-ts/try-now",
   "version": "0.2.13",
   "description": "> TODO: description",
   "author": "nik <n.moiseienko@selectoglobal.com>",
@@ -35,5 +35,5 @@
     "@draft-flysystem-ts/flysystem": "^0.2.13",
     "@draft-flysystem-ts/general": "^0.2.13"
   },
-  "gitHead": "2b0232536fca1cc6f407d6a9b176a921847eda73"
+  "gitHead": "66b3b5b52761fbe18d37d9047cc1cc62cb33290d"
 }

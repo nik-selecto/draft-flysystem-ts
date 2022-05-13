@@ -37,13 +37,11 @@ export class DropboxAdapter implements IFilesystemAdapter {
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
         const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep })
 
-        console.log('deep =>', deep);
-
         return entries.reduce((acc, item) => {
             if (item['.tag'] === 'deleted') return acc;
 
             const data = {
-                path: item.name,
+                path: item.name, // TODO name and path are not the same 
             };
             
             if (item['.tag'] === 'file') acc.push({
@@ -105,8 +103,10 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
-        throw new Error('This method is not implemented yet');
-
+    async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
+        // TODO upload with sessions
+        // TODO visibility
+        // ??? why any response ???
+        await this.dbx.filesUpload({ path: `/${path}`, contents });
     }
 }

@@ -2,3 +2,5 @@ node_modules
 packages/*/lib
 .env
 dist
+
+packages/try-now

@@ -34,11 +34,10 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
 
     }
-    async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
+    async listContents(path: string, deep: boolean = false): Promise<IStorageAttributes[]> {
         const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep })
 
-        console.log('headers =>', headers);
-        console.log('status =>', status);
+        console.log('deep =>', deep);
 
         return entries.reduce((acc, item) => {
             if (item['.tag'] === 'deleted') return acc;

@@ -11,7 +11,7 @@ async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem =  new Filesystem(dropBoxAdapter);
 
-    const pathToFile = join(__dirname, '../../../..', 'google-chrome-stable_current_amd64.deb');
+    const pathToFile = join(__dirname, '..', 'google-chrome-stable_current_amd64.deb');
 
     const res = await flysystem.write('google.deb', fs.readFileSync(pathToFile));
 

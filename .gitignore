@@ -3,4 +3,4 @@ packages/*/lib
 .env
 dist
 
-packages/try-now
+lerna-debug.log

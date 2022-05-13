@@ -1,10 +1,17 @@
 import { FileAttributes, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
+import { DropboxOptions, Dropbox } from 'dropbox';
 
 export { IFilesystemAdapter } from '@draft-flysystem-ts/general';
 
 export class DropboxAdapter implements IFilesystemAdapter {
+    private dbx!: Dropbox;
+    
+    constructor(dpbOptions: DropboxOptions) {
+        this.dbx = new Dropbox(dpbOptions);
+    }
+
     writeStream(path: string, resource: Readable, config?: IFilesystemVisibility | undefined): Promise<void> {
         throw new Error('This method is not implemented yet');
     }
@@ -20,8 +27,12 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
-        throw new Error('This method is not implemented yet');
+    async read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
+        const res = await this.dbx.filesDownload({ path });
+
+        console.log(res);
+
+        return JSON.stringify(res);
 
     }
     listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {

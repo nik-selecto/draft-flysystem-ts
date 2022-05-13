@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "dropbox": "^10.29.0",
     "file-type": "^14.7.1",
     "lerna": "^4.0.0",
     "lodash": "^4.17.21",

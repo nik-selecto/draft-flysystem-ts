@@ -11,10 +11,8 @@ async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem =  new Filesystem(dropBoxAdapter);
 
-    const pathToFile = join(__dirname, '../Downloads', 'file512MB.zip');
-
-    const res = await flysystem.write('file512MB.zip', fs.readFileSync(pathToFile));
-
+    const res = await flysystem.fileExists('output.json');
+   
     console.log(res);
 }
 

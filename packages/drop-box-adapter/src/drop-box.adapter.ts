@@ -10,8 +10,15 @@ export { IFilesystemAdapter } from '@draft-flysystem-ts/general';
 export class DropboxAdapter implements IFilesystemAdapter {
     private dbx!: Dropbox;
 
-    constructor(dpbOptions: DropboxOptions) {
+    private prefixer!: PathPrefixer;
+
+    constructor(dpbOptions: DropboxOptions, prefix: string = '') {
+        this.prefixer = new PathPrefixer(prefix);
         this.dbx = new Dropbox(dpbOptions);
+    }
+
+    protected applyPathPrefix(path: string): string {
+        return `/${this.prefixer.prefixPath(path).replace(/^\//, '').replace(/$\//, '')}`;
     }
 
     writeStream(path: string, resource: Readable, config?: IFilesystemVisibility | undefined): Promise<void> {
@@ -83,10 +90,17 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    fileExists(path: string): Promise<boolean> {
-        throw new Error('This method is not implemented yet');
+    async fileExists(path: string): Promise<boolean> {
+        const location = this.applyPathPrefix(path);
+        try {
+            await this.dbx.filesGetMetadata({ path: location, include_deleted: false });
 
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
+
     fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         throw new Error('This method is not implemented yet');
 
@@ -130,7 +144,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
             while (true) {
                 let _end = +end;
                 if (end === 0) break;
-                 
+
                 const buffy = buff.slice(start, _end);
                 console.log('start', start);
                 console.log('end', _end);
@@ -147,7 +161,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
                 }));
 
                 start += maxSize;
-                end = byteLength - start -maxSize;
+                end = byteLength - start - maxSize;
 
                 if (end < 0 || end === 0) break;
             }

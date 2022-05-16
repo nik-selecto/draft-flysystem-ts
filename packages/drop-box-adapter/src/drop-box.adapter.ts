@@ -82,14 +82,19 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    delete(path: string): Promise<void> {
-        throw new Error('This method is not implemented yet');
+    async delete(path: string): Promise<void> {
+        const location = this.applyPathPrefix(path);
 
+        try {
+            await this.dbx.filesDeleteV2({ path: location });
+        } catch (error) {
+            // TODO should we make something extra (if error not because file not exists)
+        }
     }
     deleteDirectory(path: string): Promise<void> {
-        throw new Error('This method is not implemented yet');
-
+        return this.delete(path);
     }
+
     async fileExists(path: string): Promise<boolean> {
         const location = this.applyPathPrefix(path);
         try {

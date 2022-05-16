@@ -20,7 +20,7 @@ export class FileAttributes implements IStorageAttributes {
       lastModified?: number,
       mimeType?: string,
       extraMetadata?: Record<string, any>
-    }
+    } = {},
   ) {
     this.extraMetada = options.extraMetadata || {};
     this.fileSize = options.fileSize;

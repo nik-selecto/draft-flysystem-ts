@@ -1,8 +1,8 @@
-import { FileAttributes, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
-import { DropboxOptions, Dropbox } from 'dropbox';
+import { DropboxOptions, Dropbox, files, DropboxResponse } from 'dropbox';
 
 export { IFilesystemAdapter } from '@draft-flysystem-ts/general';
 
@@ -119,19 +119,32 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    lastModified(path: string): Promise<RequireOne<FileAttributes, 'lastModified'>> {
-        throw new Error('This method is not implemented yet');
+    async lastModified(path: string): Promise<RequireOne<FileAttributes, 'lastModified'>> {
+        const location = this.applyPathPrefix(path);
 
+        const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
+
+        if (!result.server_modified) {
+            // TODO is it normal?
+            throw new UnableToRetrieveMetadataException('Unable to retrieve "last_modified" property. May be your target is not file but folder.');
+        }
+
+        return new FileAttributes(location, { lastModified: moment(result.server_modified).unix() }) as FileAttributes & { lastModified: number };
     }
 
-    // TODO RequireOne generic type - is it really work? Or at least how it should exactly work?
     async mimeType(path: string): Promise<RequireOne<FileAttributes, 'mimeType'>> {
-        const mime = new FileAttributes(
-            path,
-            { mimeType: await this.mimeTypeDetector.detectMimeTypeFromPath(path)! },
-        );
+        const location = this.applyPathPrefix(path);
+        const mimeType = await this.mimeTypeDetector.detectMimeTypeFromPath(location);
 
-        return mime as FileAttributes & { mimeType: string };
+        if (!mimeType) {
+            // TODO is it normal?
+            throw new UnableToRetrieveMetadataException('Unable to retrieve "mimeType". May be your target is not file but folder.');
+        }
+
+        return new FileAttributes(
+            location,
+            { mimeType },
+        ) as { mimeType: string };
     }
     move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
         throw new Error('This method is not implemented yet');

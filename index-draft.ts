@@ -11,7 +11,7 @@ async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem =  new Filesystem(dropBoxAdapter);
 
-    const res = await flysystem.mimeType('README.md');
+    const res = await flysystem.lastModified('README.md');
    
     console.log(res);
 }

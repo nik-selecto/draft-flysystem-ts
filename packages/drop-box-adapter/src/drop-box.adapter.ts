@@ -1,4 +1,4 @@
-import { FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
@@ -25,12 +25,10 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
     }
     visibility(path: string): Promise<RequireOne<FileAttributes, 'visibility'>> {
-        throw new Error('This method is not implemented yet');
-
+        throw new NotSupportedException('Adapter does not support visibility controls.');
     }
     setVisibility(path: string, visibility: Visibility): Promise<void> {
-        throw new Error('This method is not implemented yet');
-
+        throw new NotSupportedException('Adapter does not support visibility controls.');
     }
     async readStream(path: string, config?: Record<string, any> | undefined): Promise<ReadStream> {
         throw new Error('This method is not implemented yet');
@@ -54,7 +52,6 @@ export class DropboxAdapter implements IFilesystemAdapter {
             if (item['.tag'] === 'file') acc.push({
                 ...data,
                 size: item.size,
-                // visibility: ... TODO it looks like drop-box has not such option
                 isDir: false,
                 isFile: true,
                 type: FileType.file,

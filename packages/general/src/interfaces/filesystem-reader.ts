@@ -13,6 +13,8 @@ export interface IFilesystemReader {
    */
   fileExists(path: string): Promise<boolean>;
 
+  directoryExists(path: string): Promise<boolean>;
+
   /**
    * Read a file.
    * @param {string} path  file path

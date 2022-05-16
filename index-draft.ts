@@ -11,7 +11,7 @@ async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem =  new Filesystem(dropBoxAdapter);
 
-    const res = await flysystem.fileExists('output.json');
+    const res = await flysystem.directoryExists('animals');
    
     console.log(res);
 }

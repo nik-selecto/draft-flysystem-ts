@@ -101,6 +101,10 @@ export class DropboxAdapter implements IFilesystemAdapter {
         }
     }
 
+    async directoryExists(path: string): Promise<boolean> {
+        return this.fileExists(path);
+    }
+
     fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         throw new Error('This method is not implemented yet');
 

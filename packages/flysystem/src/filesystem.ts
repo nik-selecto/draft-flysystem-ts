@@ -44,6 +44,10 @@ export class Filesystem<T extends IFilesystemAdapter> implements IFilesystemOper
     return this.adapter.fileExists(this.pathNormalizer.normalizePath(location));
   }
 
+  public directoryExists(location: string): Promise<boolean> {
+    return this.adapter.directoryExists(this.pathNormalizer.normalizePath(location));
+  }
+
   /**
    * @inheritdoc
    */

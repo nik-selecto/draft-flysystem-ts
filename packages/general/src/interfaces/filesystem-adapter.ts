@@ -46,6 +46,11 @@ export interface IFilesystemAdapter {
   fileExists(path: string): Promise<boolean>;
 
   /**
+   * @throws FilesystemException
+   */
+  directoryExists(path: string): Promise<boolean>;
+
+  /**
    * @throws UnableToWriteFile
    * @throws FilesystemException
    */

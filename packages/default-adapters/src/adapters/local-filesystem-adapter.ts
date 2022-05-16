@@ -106,6 +106,10 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
     return isFile(this.prefixer.prefixPath(path));
   }
 
+  directoryExists(path: string): Promise<boolean> {
+    return isDir(path); // TODO check
+  }
+
   /**
    * Ensure the root directory exists.
    *

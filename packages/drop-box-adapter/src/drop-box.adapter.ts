@@ -78,9 +78,11 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    createDirectory(path: string, config?: IFilesystemVisibility | undefined): Promise<void> {
-        throw new Error('This method is not implemented yet');
+    async createDirectory(path: string, config?: IFilesystemVisibility | undefined): Promise<void> {
+        const location = this.applyPathPrefix(path);
+        const res = await this.dbx.filesCreateFolderV2({ path: location });
 
+        console.log(res);
     }
     async delete(path: string): Promise<void> {
         const location = this.applyPathPrefix(path);

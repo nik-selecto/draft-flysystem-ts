@@ -123,9 +123,15 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    mimeType(path: string): Promise<RequireOne<FileAttributes, 'mimeType'>> {
-        throw new Error('This method is not implemented yet');
 
+    // TODO RequireOne generic type - is it really work? Or at least how it should exactly work?
+    async mimeType(path: string): Promise<RequireOne<FileAttributes, 'mimeType'>> {
+        const mime = new FileAttributes(
+            path,
+            { mimeType: await this.mimeTypeDetector.detectMimeTypeFromPath(path)! },
+        );
+
+        return mime as FileAttributes & { mimeType: string };
     }
     move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
         throw new Error('This method is not implemented yet');

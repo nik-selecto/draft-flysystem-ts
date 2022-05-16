@@ -379,7 +379,7 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
       err = e;
     }
     if (stats && stats.isFile()) {
-      return new FileAttributes(path, stats.size) as RequireOne<FileAttributes, 'fileSize'>;
+      return new FileAttributes(path, { fileSize: stats.size }) as RequireOne<FileAttributes, 'fileSize'>;
     }
 
     throw UnableToRetrieveMetadataException.fileSize(path, err?.message, err);
@@ -394,7 +394,7 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
 
     try {
       const stats = await stat(location);
-      return new FileAttributes(path, undefined, undefined, stats.ctimeMs) as RequireOne<
+      return new FileAttributes(path, { lastModified: stats.ctimeMs }) as RequireOne<
         FileAttributes,
         'lastModified'
       >;
@@ -420,7 +420,7 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
       throw UnableToRetrieveMetadataException.mimeType(path, err?.message, err);
     }
 
-    return new FileAttributes(path, undefined, undefined, undefined, mimetype as string) as RequireOne<
+    return new FileAttributes(path, { mimeType: mimetype }) as RequireOne<
       FileAttributes,
       'mimeType'
     >;
@@ -443,7 +443,7 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
     const newMode = parseInt(padStart(vb.toString(8), 4, '0'), 8);
     const visibility = this._visibility.inverseForFile(newMode);
 
-    return new FileAttributes(path, undefined, visibility) as RequireOne<FileAttributes, 'visibility'>;
+    return new FileAttributes(path, { visibility }) as RequireOne<FileAttributes, 'visibility'>;
   }
 
   /**
@@ -561,11 +561,12 @@ export class LocalFilesystemAdapter implements IFilesystemAdapter {
     return file.stats.isFile()
       ? new FileAttributes(
         this.prefixer.stripPrefix(file.path),
-        file.stats.size,
-        this._visibility.inverseForFile(file.stats.mode),
-        file.stats.ctimeMs,
-        undefined,
-        {}
+        {
+          fileSize: file.stats.size,
+          visibility: this._visibility.inverseForFile(file.stats.mode),
+          lastModified: file.stats.ctimeMs,
+
+        },
       )
       : new DirectoryAttributes(path, this._visibility.inverseForDirectory(file.stats.mode), file.stats.ctimeMs);
   }

@@ -1,4 +1,4 @@
-import { FileAttributes, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FilesystemException, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
@@ -118,28 +118,38 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     async fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         const location = this.applyPathPrefix(path);
-        const { result } = await this.dbx.filesGetMetadata({
-            path: location,
-        }) as DropboxResponse<Partial<files.FileMetadataReference>>;
-        const { size } = result;
+        let meta: Partial<files.FileMetadataReference>;
+    
+        try {
+            const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
+            meta = result;
+        } catch (error) {
+            throw new FilesystemException(`Incorrect path "${path}": any data was found`);
+        }
 
-        if (!size) {
+        if (!meta.size) {
             throw new UnableToRetrieveMetadataException('Unable to retrieve "size" property. May be your target is not file but folder.')
         }
 
-        return new FileAttributes(location, { fileSize: size }) as { fileSize: number };
+        return new FileAttributes(location, { fileSize: meta.size }) as { fileSize: number };
     }
     async lastModified(path: string): Promise<RequireOne<FileAttributes, 'lastModified'>> {
         const location = this.applyPathPrefix(path);
+        let meta: Partial<files.FileMetadataReference>;
+    
+        try {
+            const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
+            meta = result;
+        } catch (error) {
+            throw new FilesystemException(`Incorrect path "${path}": any data was found`);
+        }
 
-        const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
-
-        if (!result.server_modified) {
+        if (!meta.server_modified) {
             // TODO is it normal?
             throw new UnableToRetrieveMetadataException('Unable to retrieve "last_modified" property. May be your target is not file but folder.');
         }
 
-        return new FileAttributes(location, { lastModified: moment(result.server_modified).unix() }) as FileAttributes & { lastModified: number };
+        return new FileAttributes(location, { lastModified: moment(meta.server_modified).unix() }) as FileAttributes & { lastModified: number };
     }
 
     async mimeType(path: string): Promise<RequireOne<FileAttributes, 'mimeType'>> {

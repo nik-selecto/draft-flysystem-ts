@@ -102,6 +102,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     async fileExists(path: string): Promise<boolean> {
         const location = this.applyPathPrefix(path);
+        
         try {
             await this.dbx.filesGetMetadata({ path: location, include_deleted: false });
 
@@ -115,9 +116,18 @@ export class DropboxAdapter implements IFilesystemAdapter {
         return this.fileExists(path);
     }
 
-    fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
-        throw new Error('This method is not implemented yet');
+    async fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
+        const location = this.applyPathPrefix(path);
+        const { result } = await this.dbx.filesGetMetadata({ 
+            path: location,
+        }) as DropboxResponse<Partial<files.FileMetadataReference>>;
+        const { size } = result;
 
+        if (!size) {
+            throw new UnableToRetrieveMetadataException('Unable to retrieve "size" property. May be your target is not file but folder.')
+        }
+
+        return new FileAttributes(location, { fileSize: size }) as { fileSize: number };
     }
     async lastModified(path: string): Promise<RequireOne<FileAttributes, 'lastModified'>> {
         const location = this.applyPathPrefix(path);

@@ -11,9 +11,11 @@ async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem =  new Filesystem(dropBoxAdapter);
 
-    const res = await flysystem.lastModified('README.md');
+    const res = await flysystem.fileSize('README.md');
+    console.log('FILE RESPONSE\n', res);
+    const res2 = await flysystem.fileSize('animals');
+    console.log('FOLDER RESPONSE\n', res2);
    
-    console.log(res);
 }
 
 main();

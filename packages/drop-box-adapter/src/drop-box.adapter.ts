@@ -4,8 +4,6 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 import { DropboxOptions, Dropbox, files, DropboxResponse } from 'dropbox';
 
-export { IFilesystemAdapter } from '@draft-flysystem-ts/general';
-
 
 export class DropboxAdapter implements IFilesystemAdapter {
     private dbx!: Dropbox;
@@ -13,6 +11,8 @@ export class DropboxAdapter implements IFilesystemAdapter {
     private prefixer!: PathPrefixer;
 
     private mimeTypeDetector!: IMimeTypeDetector;
+
+    private readonly MAX_UPLOAD_PORTION = 100_000_000;
 
     constructor(
         private dpbOptions: DropboxOptions,
@@ -102,7 +102,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     async fileExists(path: string): Promise<boolean> {
         const location = this.applyPathPrefix(path);
-        
+
         try {
             await this.dbx.filesGetMetadata({ path: location, include_deleted: false });
 
@@ -118,7 +118,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     async fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         const location = this.applyPathPrefix(path);
-        const { result } = await this.dbx.filesGetMetadata({ 
+        const { result } = await this.dbx.filesGetMetadata({
             path: location,
         }) as DropboxResponse<Partial<files.FileMetadataReference>>;
         const { size } = result;
@@ -161,68 +161,82 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     }
     async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
-        // TODO upload with sessions
-        // TODO visibility
-        // ??? why any response ???
+        const location = this.applyPathPrefix(path);
         const buff = typeof contents === 'string'
             ? Buffer.from(contents)
             : contents;
         const { byteLength } = buff;
-        console.log(byteLength);
-        const maxSize = 150 * 1_000_000;
-        let start = 0;
-        let end = maxSize;
 
-        if (byteLength > maxSize) {
-            const firstChunk = buff.slice(start, end);
-            const { result: { session_id } } = await this.dbx.filesUploadSessionStart({ close: false, contents: firstChunk });
+        if (byteLength <= this.MAX_UPLOAD_PORTION) {
+            await this.dbx.filesUpload({ path: location, contents });
 
-            console.log('session_id', session_id);
+            return;
+        }
 
-            start += maxSize;
-            end = byteLength - start - maxSize;
+        let offset = 0;
+        let end = this.MAX_UPLOAD_PORTION;
+        const firstChank = buff.slice(offset, end);
 
-            const chunks = [];
+        const { result: { session_id } } = await this.dbx.filesUploadSessionStart({
+            contents: firstChank,
+        });
 
-            while (true) {
-                let _end = +end;
-                if (end === 0) break;
+        while (true) {
+            end += this.MAX_UPLOAD_PORTION;
+            offset += this.MAX_UPLOAD_PORTION;
 
-                const buffy = buff.slice(start, _end);
-                console.log('start', start);
-                console.log('end', _end);
-                console.log('buffy', buffy.byteLength);
+            const remainData = byteLength - end;
+            const isFinish = remainData <= 0;
+            const _end = isFinish ? offset + remainData : end;
+            const contents = buff.slice(offset, _end);
+            // TODO rm!!!
+            console.log('isFinish', isFinish);
+            console.log('offset', offset);
+            console.log('end', end);
+            console.log(byteLength);
+            console.log(_end, '_end');
 
-                chunks.push(this.dbx.filesUploadSessionAppendV2({
+
+            if (isFinish) {
+                const { status } = await this.dbx.filesUploadSessionFinish({
+                    commit: { path: location },
                     cursor: {
-                        session_id,
-                        offset: start,
+                        offset,
+                        session_id: session_id,
                     },
-                    contents: buffy,
-                }).then((res) => {
-                    console.log(...Object.entries(res));
-                }));
+                    contents,
+                });
+                // TODO rm!!!
+                console.log('isFinish', isFinish);
+                console.log('offset', offset);
+                console.log('end', end);
+                console.log(byteLength);
+                console.log(_end, '_end');
+                console.log('finish status\n\n', status);
 
-                start += maxSize;
-                end = byteLength - start - maxSize;
-
-                if (end < 0 || end === 0) break;
+                return;
             }
 
-            const promiseChain = chunks.reduce((prev, next) => {
-                return prev.then((_res) => {
-                    console.log(_res);
-                    return next.then()
-                });
+            const { status } = await this.dbx.filesUploadSessionAppendV2({
+                cursor: {
+                    session_id: session_id,
+                    offset,
+                },
+                contents,
             });
 
-            await promiseChain;
+            // TODO rm!!!
+            console.log('isFinish', isFinish);
+            console.log('offset', offset);
+            console.log('end', end);
+            console.log(byteLength);
+            console.log(_end, '_end');
+            console.log('append status\n\n', status);
+        };
+    }
 
-            // await Promise.all(chunks);
-        } else {
-            const res = await this.dbx.filesUpload({ path: `/${path}`, contents });
-
-            console.log(res);
-        }
+    // this method is not exists in adapter!
+    public getUrl(path: string): Promise<string> {
+        return this.dbx.filesGetTemporaryLink({ path: this.applyPathPrefix(path) }).then(({ result: { link } }) => link);
     }
 }

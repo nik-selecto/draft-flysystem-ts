@@ -80,9 +80,8 @@ export class DropboxAdapter implements IFilesystemAdapter {
     }
     async createDirectory(path: string, config?: IFilesystemVisibility | undefined): Promise<void> {
         const location = this.applyPathPrefix(path);
-        const res = await this.dbx.filesCreateFolderV2({ path: location });
 
-        console.log(res);
+        await this.dbx.filesCreateFolderV2({ path: location });
     }
     async delete(path: string): Promise<void> {
         const location = this.applyPathPrefix(path);

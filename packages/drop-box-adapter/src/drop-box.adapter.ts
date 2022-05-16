@@ -1,4 +1,4 @@
-import { FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, Visibility } from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
@@ -12,9 +12,16 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     private prefixer!: PathPrefixer;
 
-    constructor(dpbOptions: DropboxOptions, prefix: string = '') {
-        this.prefixer = new PathPrefixer(prefix);
+    private mimeTypeDetector!: IMimeTypeDetector;
+
+    constructor(
+        private dpbOptions: DropboxOptions,
+        prefix: string = '',
+        mimeTypeDetector: IMimeTypeDetector | null = null,
+    ) {
         this.dbx = new Dropbox(dpbOptions);
+        this.prefixer = new PathPrefixer(prefix);
+        this.mimeTypeDetector = mimeTypeDetector ? mimeTypeDetector : new FInfoMimeTypeDetector();
     }
 
     protected applyPathPrefix(path: string): string {

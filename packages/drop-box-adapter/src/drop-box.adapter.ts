@@ -78,9 +78,17 @@ export class DropboxAdapter implements IFilesystemAdapter {
         throw new Error('This method is not implemented yet');
 
     }
-    copy(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
-        throw new Error('This method is not implemented yet');
+    async copy(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
+        const [from_path, to_path] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
 
+        try {
+            await this.dbx.filesCopyV2({
+                from_path,
+                to_path,
+            });
+        } catch (error) {
+            throw new UnableToMoveFileException(`Unable to move <${from_path}> to <${to_path}>`);
+        }
     }
     async createDirectory(path: string, config?: IFilesystemVisibility | undefined): Promise<void> {
         const location = this.applyPathPrefix(path);

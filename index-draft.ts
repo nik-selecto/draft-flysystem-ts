@@ -14,15 +14,15 @@ async function uploadTry(flysystem: Filesystem<DropboxAdapter>) {
     await flysystem.write(`go-${moment().unix()}.mp4`, fs.readFileSync(pathToFile));
 }
 
-async function moveTry(flysystem: Filesystem<DropboxAdapter>) {
-    await flysystem.move('READ.md', 'README.md');
+async function moveOrCopyTry(flysystem: Filesystem<DropboxAdapter>, method: 'move' | 'copy' = 'move') {
+    await flysystem[method]('README.md', 'copy/README.md');
 }
 
 async function main() {
     const dropBoxAdapter = new DropboxAdapter({ accessToken: process.env.DBX_ACCESS });
     const flysystem = new Filesystem(dropBoxAdapter);
     
-    await moveTry(flysystem);
+    await moveOrCopyTry(flysystem, 'copy');
 }
 
 main();

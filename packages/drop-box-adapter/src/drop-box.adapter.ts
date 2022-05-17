@@ -223,9 +223,9 @@ export class DropboxAdapter implements IFilesystemAdapter {
             end += this.MAX_UPLOAD_PORTION;
             offset += this.MAX_UPLOAD_PORTION;
 
-            const remainData = byteLength - end;
-            const isFinish = remainData <= 0;
-            const _end = isFinish ? offset + remainData : end;
+            const remainData = byteLength - offset;
+            const isFinish = remainData <= this.MAX_UPLOAD_PORTION;
+            const _end = isFinish ? byteLength : end;
             const contents = buff.slice(offset, _end);
             // TODO rm!!!
             console.log('isFinish', isFinish);

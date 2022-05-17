@@ -42,9 +42,20 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
     }
     async read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
-        throw new Error('This method is not implemented yet');
+        const location = this.applyPathPrefix(path);
+        const { fileSize } = await this.fileSize(path);
 
+        // TODO (check)
+        // file is to large - so we simply return link for downloading it
+        if (fileSize > this.MAX_UPLOAD_PORTION) {
+            const { result: { link } } = await this.dbx.filesGetTemporaryLink({ path: location });
+      
+            return link;
+        }
 
+        const { result: { fileBinary } } = await this.dbx.filesDownload({ path: location }) as DropboxResponse<files.FileMetadata & { fileBinary: Buffer }>;
+
+        return fileBinary;
     }
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
         const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep })
@@ -74,9 +85,10 @@ export class DropboxAdapter implements IFilesystemAdapter {
             return acc;
         }, [] as IStorageAttributes[]);
     }
-    getPathPrefix(): PathPrefixer {
-        throw new Error('This method is not implemented yet');
 
+    // TODO why do we need thid method?
+    getPathPrefix(): PathPrefixer {
+        return this.prefixer;
     }
     async copy(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
         const [from_path, to_path] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];

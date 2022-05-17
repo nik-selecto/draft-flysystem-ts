@@ -1,4 +1,4 @@
-import { FileAttributes, FilesystemException, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
+import { FileAttributes, FilesystemException, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToMoveFileException, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
@@ -166,9 +166,17 @@ export class DropboxAdapter implements IFilesystemAdapter {
             { mimeType },
         ) as { mimeType: string };
     }
-    move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
-        throw new Error('This method is not implemented yet');
+    async move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
+        const [from_path, to_path] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
 
+        try {
+            await this.dbx.filesMoveV2({
+                from_path,
+                to_path,
+            });
+        } catch (error) {
+            throw new UnableToMoveFileException(`Unable to move <${from_path}> to <${to_path}>`);
+        }
     }
     async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
         const location = this.applyPathPrefix(path);

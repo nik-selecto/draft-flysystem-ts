@@ -1,4 +1,3 @@
-
 export const OPTION_VISIBILITY = 'visibility';
 export const OPTION_DIRECTORY_VISIBILITY = 'directory_visibility';
 export const ATTRIBUTE_PATH = 'path';

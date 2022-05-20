@@ -1,5 +1,5 @@
-import { IStorageAttributes } from './storage-attributes.interface';
 import { ReadStream } from 'fs';
+import { IStorageAttributes } from './storage-attributes.interface';
 import { Visibility } from '../enum';
 
 export interface IFilesystemReader {

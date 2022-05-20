@@ -1,5 +1,3 @@
-'use strict';
-
 const dropBoxAdapter = require('..');
 
 describe('drop-box-adapter', () => {

@@ -2,38 +2,33 @@ import { FilesystemOperationFailedException } from './filesystem-operation-faile
 import { bindErrorConstructor } from '../util/exception.util';
 
 export class UnableToMoveFileException extends FilesystemOperationFailedException {
-  /**
-   * @var string
-   */
-  private _source = '';
+    private _source = '';
 
-  /**
-   * @var string
-   */
-  private _destination = '';
+    private _destination = '';
 
-  constructor(message: string) {
-    super(message);
-    bindErrorConstructor(this, UnableToMoveFileException);
-  }
+    constructor(message: string) {
+        super(message);
+        bindErrorConstructor(this, UnableToMoveFileException);
+    }
 
-  public source(): string {
-    return this._source;
-  }
+    public source(): string {
+        return this._source;
+    }
 
-  public destination(): string {
-    return this._destination;
-  }
+    public destination(): string {
+        return this._destination;
+    }
 
-  static fromLocationTo(sourcePath: string, destinationPath: string, previous?: Error): UnableToMoveFileException {
-    const err = new UnableToMoveFileException(`Unable to move file from ${sourcePath} to ${destinationPath}`);
-    err._source = sourcePath;
-    err._destination = destinationPath;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+    static fromLocationTo(sourcePath: string, destinationPath: string, previous?: Error): UnableToMoveFileException {
+        const err = new UnableToMoveFileException(`Unable to move file from ${sourcePath} to ${destinationPath}`);
+        err._source = sourcePath;
+        err._destination = destinationPath;
 
-    return err;
-  }
+        return err;
+    }
 
-  public operation(): string {
-    return FilesystemOperationFailedException.OPERATION_MOVE;
-  }
+    public operation(): string {
+        return FilesystemOperationFailedException.OPERATION_MOVE;
+    }
 }

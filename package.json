@@ -1,25 +1,24 @@
 {
   "dependencies": {
     "dotenv": "^16.0.1",
-    "dropbox": "^10.29.0",
-    "file-type": "^14.7.1",
-    "lerna": "^4.0.0",
-    "lodash": "^4.17.21",
-    "mime": "^3.0.0",
-    "moment": "^2.29.3"
+    "lerna": "^4.0.0"
   },
   "name": "draft-flysystem-ts",
   "devDependencies": {
-    "@nestjs/common": "^8.4.4",
     "@types/dotenv": "^8.2.0",
-    "@types/lodash": "^4.14.182",
-    "@types/mime": "^2.0.3",
-    "@types/node": "^17.0.32",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "ts-node": "^10.7.0"
   },
   "scripts": {
-    "start": "npx lerna run build && npx ts-node index-draft.ts",
+    "start": "ts-node index-draft.ts",
+    "build": "npx lerna run build",
+    "start:dev": "npm run build && npm start",
+    "lint": "npx lerna run lint",
     "publish": "npx lerna run build && npx lerna publish"
   }
 }

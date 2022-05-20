@@ -1,5 +1,3 @@
-'use strict';
-
 const general = require('..');
 
 describe('@draft-flysystem-ts/general', () => {

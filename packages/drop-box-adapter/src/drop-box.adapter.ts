@@ -1,9 +1,14 @@
-import { FileAttributes, FilesystemException, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToMoveFileException, UnableToRetrieveMetadataException, Visibility } from '@draft-flysystem-ts/general';
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import {
+    FileAttributes, FilesystemException, FileType, FInfoMimeTypeDetector, IFilesystemAdapter, IFilesystemVisibility, IMimeTypeDetector, IReadFileOptions, IStorageAttributes, NotSupportedException, PathPrefixer, RequireOne, UnableToMoveFileException, UnableToRetrieveMetadataException, Visibility,
+} from '@draft-flysystem-ts/general';
 import moment from 'moment';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
-import { DropboxOptions, Dropbox, files, DropboxResponse } from 'dropbox';
-
+import {
+    DropboxOptions, Dropbox, files, DropboxResponse,
+} from 'dropbox';
 
 export class DropboxAdapter implements IFilesystemAdapter {
     private dbx!: Dropbox;
@@ -21,7 +26,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
     ) {
         this.dbx = new Dropbox(dpbOptions);
         this.prefixer = new PathPrefixer(prefix);
-        this.mimeTypeDetector = mimeTypeDetector ? mimeTypeDetector : new FInfoMimeTypeDetector();
+        this.mimeTypeDetector = mimeTypeDetector || new FInfoMimeTypeDetector();
     }
 
     protected applyPathPrefix(path: string): string {
@@ -31,16 +36,19 @@ export class DropboxAdapter implements IFilesystemAdapter {
     writeStream(path: string, resource: Readable, config?: IFilesystemVisibility | undefined): Promise<void> {
         throw new Error('This method is not implemented yet');
     }
+
     visibility(path: string): Promise<RequireOne<FileAttributes, 'visibility'>> {
         throw new NotSupportedException('Adapter does not support visibility controls.');
     }
+
     setVisibility(path: string, visibility: Visibility): Promise<void> {
         throw new NotSupportedException('Adapter does not support visibility controls.');
     }
+
     async readStream(path: string, config?: Record<string, any> | undefined): Promise<ReadStream> {
         throw new Error('This method is not implemented yet');
-
     }
+
     async read(path: string, config?: IReadFileOptions | undefined): Promise<string | Buffer> {
         const location = this.applyPathPrefix(path);
         const { fileSize } = await this.fileSize(path);
@@ -49,7 +57,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
         // file is to large - so we simply return link for downloading it
         if (fileSize > this.MAX_UPLOAD_PORTION) {
             const { result: { link } } = await this.dbx.filesGetTemporaryLink({ path: location });
-      
+
             return link;
         }
 
@@ -57,30 +65,34 @@ export class DropboxAdapter implements IFilesystemAdapter {
 
         return fileBinary;
     }
+
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep })
+        const { headers, status, result: { entries } } = await this.dbx.filesListFolder({ path, recursive: deep });
 
         return entries.reduce((acc, item) => {
             if (item['.tag'] === 'deleted') return acc;
 
             const data = {
-                path: item.name, // TODO name and path are not the same 
+                path: item.name, // TODO name and path are not the same
             };
 
-            if (item['.tag'] === 'file') acc.push({
-                ...data,
-                size: item.size,
-                isDir: false,
-                isFile: true,
-                type: FileType.file,
-                lastModified: moment(item.client_modified).unix(), // TODO check 'item.server_modified',
-            });
-            else if (item[".tag"] === 'folder') acc.push({
-                ...data,
-                isDir: true,
-                isFile: false,
-                type: FileType.dir,
-            });
+            if (item['.tag'] === 'file') {
+                acc.push({
+                    ...data,
+                    size: item.size,
+                    isDir: false,
+                    isFile: true,
+                    type: FileType.file,
+                    lastModified: moment(item.client_modified).unix(), // TODO check 'item.server_modified',
+                });
+            } else if (item['.tag'] === 'folder') {
+                acc.push({
+                    ...data,
+                    isDir: true,
+                    isFile: false,
+                    type: FileType.dir,
+                });
+            }
 
             return acc;
         }, [] as IStorageAttributes[]);
@@ -90,32 +102,35 @@ export class DropboxAdapter implements IFilesystemAdapter {
     getPathPrefix(): PathPrefixer {
         return this.prefixer;
     }
+
     async copy(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
-        const [from_path, to_path] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
+        const [fromPath, toPath] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
 
         try {
             await this.dbx.filesCopyV2({
-                from_path,
-                to_path,
+                from_path: fromPath,
+                to_path: toPath,
             });
         } catch (error) {
-            throw new UnableToMoveFileException(`Unable to move <${from_path}> to <${to_path}>`);
+            throw new UnableToMoveFileException(`Unable to move <${fromPath}> to <${toPath}>`);
         }
     }
+
     async createDirectory(path: string, config?: IFilesystemVisibility | undefined): Promise<void> {
         const location = this.applyPathPrefix(path);
 
         await this.dbx.filesCreateFolderV2({ path: location });
     }
+
     async delete(path: string): Promise<void> {
         const location = this.applyPathPrefix(path);
 
         try {
             await this.dbx.filesDeleteV2({ path: location });
-        } catch (error) {
-            // TODO should we make something extra (if error not because file not exists)
-        }
+        // eslint-disable-next-line no-empty
+        } catch (error) { }
     }
+
     deleteDirectory(path: string): Promise<void> {
         return this.delete(path);
     }
@@ -139,7 +154,7 @@ export class DropboxAdapter implements IFilesystemAdapter {
     async fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         const location = this.applyPathPrefix(path);
         let meta: Partial<files.FileMetadataReference>;
-    
+
         try {
             const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
             meta = result;
@@ -148,15 +163,16 @@ export class DropboxAdapter implements IFilesystemAdapter {
         }
 
         if (!meta.size) {
-            throw new UnableToRetrieveMetadataException('Unable to retrieve "size" property. May be your target is not file but folder.')
+            throw new UnableToRetrieveMetadataException('Unable to retrieve "size" property. May be your target is not file but folder.');
         }
 
         return new FileAttributes(location, { fileSize: meta.size }) as { fileSize: number };
     }
+
     async lastModified(path: string): Promise<RequireOne<FileAttributes, 'lastModified'>> {
         const location = this.applyPathPrefix(path);
         let meta: Partial<files.FileMetadataReference>;
-    
+
         try {
             const { result } = await this.dbx.filesGetMetadata({ path: location }) as DropboxResponse<Partial<files.FileMetadataReference>>;
             meta = result;
@@ -165,7 +181,6 @@ export class DropboxAdapter implements IFilesystemAdapter {
         }
 
         if (!meta.server_modified) {
-            // TODO is it normal?
             throw new UnableToRetrieveMetadataException('Unable to retrieve "last_modified" property. May be your target is not file but folder.');
         }
 
@@ -186,18 +201,20 @@ export class DropboxAdapter implements IFilesystemAdapter {
             { mimeType },
         ) as { mimeType: string };
     }
+
     async move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {
-        const [from_path, to_path] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
+        const [fromPath, toPath] = [this.applyPathPrefix(source), this.applyPathPrefix(destination)];
 
         try {
             await this.dbx.filesMoveV2({
-                from_path,
-                to_path,
+                from_path: fromPath,
+                to_path: toPath,
             });
         } catch (error) {
-            throw new UnableToMoveFileException(`Unable to move <${from_path}> to <${to_path}>`);
+            throw new UnableToMoveFileException(`Unable to move <${fromPath}> to <${toPath}>`);
         }
     }
+
     async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
         const location = this.applyPathPrefix(path);
         const buff = typeof contents === 'string'
@@ -215,10 +232,11 @@ export class DropboxAdapter implements IFilesystemAdapter {
         let end = this.MAX_UPLOAD_PORTION;
         const firstChank = buff.slice(offset, end);
 
-        const { result: { session_id } } = await this.dbx.filesUploadSessionStart({
+        const { result: { session_id: sesId } } = await this.dbx.filesUploadSessionStart({
             contents: firstChank,
         });
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             end += this.MAX_UPLOAD_PORTION;
             offset += this.MAX_UPLOAD_PORTION;
@@ -226,51 +244,31 @@ export class DropboxAdapter implements IFilesystemAdapter {
             const remainData = byteLength - offset;
             const isFinish = remainData <= this.MAX_UPLOAD_PORTION;
             const _end = isFinish ? byteLength : end;
-            const contents = buff.slice(offset, _end);
-            // TODO rm!!!
-            console.log('isFinish', isFinish);
-            console.log('offset', offset);
-            console.log('end', end);
-            console.log(byteLength);
-            console.log(_end, '_end');
-
+            const _contents = buff.slice(offset, _end);
 
             if (isFinish) {
+                // eslint-disable-next-line no-await-in-loop
                 const { status } = await this.dbx.filesUploadSessionFinish({
                     commit: { path: location },
                     cursor: {
                         offset,
-                        session_id: session_id,
+                        session_id: sesId,
                     },
-                    contents,
+                    contents: _contents,
                 });
-                // TODO rm!!!
-                console.log('isFinish', isFinish);
-                console.log('offset', offset);
-                console.log('end', end);
-                console.log(byteLength);
-                console.log(_end, '_end');
-                console.log('finish status\n\n', status);
 
                 return;
             }
 
+            // eslint-disable-next-line no-await-in-loop
             const { status } = await this.dbx.filesUploadSessionAppendV2({
                 cursor: {
-                    session_id: session_id,
+                    session_id: sesId,
                     offset,
                 },
-                contents,
+                contents: _contents,
             });
-
-            // TODO rm!!!
-            console.log('isFinish', isFinish);
-            console.log('offset', offset);
-            console.log('end', end);
-            console.log(byteLength);
-            console.log(_end, '_end');
-            console.log('append status\n\n', status);
-        };
+        }
     }
 
     // this method is not exists in adapter!

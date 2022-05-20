@@ -1,38 +1,37 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable default-param-last */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { FilesystemOperationFailedException } from './filesystem-operation-failed.exception';
 import { bindErrorConstructor } from '../util/exception.util';
 
 export class UnableToWriteFileException extends FilesystemOperationFailedException {
-  constructor(message: string) {
-    super(message);
-    bindErrorConstructor(this, UnableToWriteFileException);
-  }
-  /**
-   * @var string
-   */
-  private _location = '';
+    constructor(message: string) {
+        super(message);
+        bindErrorConstructor(this, UnableToWriteFileException);
+    }
 
-  /**
-   * @var string
-   */
-  private _reason = '';
+    private _location = '';
 
-  public static atLocation(location: string, reason = '', previous?: Error): UnableToWriteFileException {
-    const e = new UnableToWriteFileException(`Unable to write file at location: ${location}. ${reason}`.trimEnd());
-    e._location = location;
-    e._reason = reason;
+    private _reason = '';
 
-    return e;
-  }
+    public static atLocation(location: string, reason = '', previous?: Error): UnableToWriteFileException {
+        const e = new UnableToWriteFileException(`Unable to write file at location: ${location}. ${reason}`.trimEnd());
+        e._location = location;
+        e._reason = reason;
 
-  public operation(): string {
-    return FilesystemOperationFailedException.OPERATION_WRITE;
-  }
+        return e;
+    }
 
-  public reason(): string {
-    return this._reason;
-  }
+    public operation(): string {
+        return FilesystemOperationFailedException.OPERATION_WRITE;
+    }
 
-  public location(): string {
-    return this._location;
-  }
+    public reason(): string {
+        return this._reason;
+    }
+
+    public location(): string {
+        return this._location;
+    }
 }

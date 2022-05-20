@@ -1,18 +1,18 @@
 import {
-  access as fsAccess,
-  chmod as fsChmod,
-  lstat as fsLstat,
-  mkdir as fsMkdir,
-  readdir as fsReaddir,
-  rmdir as fsRmdir,
-  stat as fsStat,
-  unlink as fsUnlink,
-  copyFile as fsCopyFile,
-  readFile as fsReadFile,
-  rename as fsRename,
-  writeFile as fsWriteFile,
-  realpath as fsRealpath,
-  symlink as fsSymlink,
+    access as fsAccess,
+    chmod as fsChmod,
+    lstat as fsLstat,
+    mkdir as fsMkdir,
+    readdir as fsReaddir,
+    rmdir as fsRmdir,
+    stat as fsStat,
+    unlink as fsUnlink,
+    copyFile as fsCopyFile,
+    readFile as fsReadFile,
+    rename as fsRename,
+    writeFile as fsWriteFile,
+    realpath as fsRealpath,
+    symlink as fsSymlink,
 } from 'fs';
 import { promisify } from 'util';
 
@@ -32,7 +32,7 @@ export const realpath = promisify(fsRealpath);
 export const symlink = promisify(fsSymlink);
 
 export function pathExists(path: string): Promise<boolean> {
-  return access(path)
-    .then(() => true)
-    .catch(() => false);
+    return access(path)
+        .then(() => true)
+        .catch(() => false);
 }

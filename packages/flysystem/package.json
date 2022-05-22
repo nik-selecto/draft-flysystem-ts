@@ -35,13 +35,16 @@
   },
   "gitHead": "66b3b5b52761fbe18d37d9047cc1cc62cb33290d",
   "devDependencies": {
+    "@jest/types": "^28.1.0",
     "@nestjs/common": "^8.4.5",
+    "@types/jest": "^27.5.1",
     "@types/lodash": "^4.14.182",
     "@types/node": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
     "eslint": "^8.15.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0"
+    "eslint-plugin-import": "^2.26.0",
+    "jest": "^28.1.0"
   }
 }

@@ -1,5 +1,7 @@
-const dropBoxAdapter = require('..');
+const dropBoxAdapter = require('../src');
 
 describe('drop-box-adapter', () => {
-    it('needs tests');
+    it('needs tests', () => {
+        expect(dropBoxAdapter).toBeDefined();
+    });
 });

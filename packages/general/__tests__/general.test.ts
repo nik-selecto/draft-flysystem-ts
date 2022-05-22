@@ -1,5 +1,7 @@
-const general = require('..');
+const general = require('../src');
 
 describe('@draft-flysystem-ts/general', () => {
-    it('needs tests');
+    it('need tests', () => {
+        expect(general).toBeDefined();
+    });
 });

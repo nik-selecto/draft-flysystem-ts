@@ -1,5 +1,7 @@
-const defaultAdapters = require('..');
+const defaultAdapters = require('../src');
 
 describe('default-adapters', () => {
-    it('needs tests');
+    it('needs tests', () => {
+        expect(defaultAdapters).toBeDefined();
+    });
 });

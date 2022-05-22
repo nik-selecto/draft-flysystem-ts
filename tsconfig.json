@@ -96,6 +96,7 @@
     "**/*.spec.ts",
     "**/*.spec.js",
     "**/*.test.ts",
-    "**/*.test.js"
+    "**/*.test.js",
+    "**/jest.config.ts",
   ]
 }

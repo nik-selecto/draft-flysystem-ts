@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "> TODO: description",
   "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
-  "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
+  "homepage": "https://nik-selecto.github.io/draft-flysystem-ts/packages/drop-box-adapter",
   "license": "ISC",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",

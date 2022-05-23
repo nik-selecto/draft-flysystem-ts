@@ -1,13 +1,4 @@
 # `default-adapters`
-## [HOME](https://nik-selecto.github.io/draft-flysystem-ts/)
+> this project is not completed yet
 
-
-> TODO: description
-
-## Usage
-
-```
-const defaultAdapters = require('default-adapters');
-
-// TODO: DEMONSTRATE API
-```
+> TODO

@@ -1,5 +1,5 @@
 # `@draft-flysystem-ts/general`
-## [HOME](https://nik-selecto.github.io/draft-flysystem-ts/)
+> this project is not completed yet
 
 > TODO: description
 

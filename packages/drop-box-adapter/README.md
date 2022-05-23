@@ -1,11 +1,10 @@
 # `@draft-flysystem-ts/drop-box-adapter`
 > this project is not completed yet
-## [=> Home page](https://nik-selecto.github.io/draft-flysystem-ts/)
 
 ## Description:
 This adapter allows you to work with [DropBox](https://www.dropbox.com/home).
-It works in composite with main [FileSystem class](../flysystem/README.md). Also you may find useful codebase in [@draft-flysystem-ts/general](../general/README.md) module.
 Under the hood it use official [DropBox SDK for node.js](https://dropbox.github.io/dropbox-sdk-js/Dropbox.html).
+It works in composite with main [FileSystem class](../flysystem/README.md). Also you may find useful codebase in [@draft-flysystem-ts/general](../general/README.md) module.
 
 ## Specifics of this adapter:
 Be careful. This adapter does not support "_visibility_" property and related to it methods. This is due to the characteristics of the DropBox storage. Exception will be thrown. Also, since the official SDK does not work with streams, such methods as "_.readStream()_", "_.writeStream()_" also does not supported. But these methods will be support in the future. Follow the updates of this repository.

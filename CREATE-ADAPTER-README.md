@@ -1,3 +1,3 @@
 ## How create your own adapter:
 // TODO
-## [HOME](https://nik-selecto.github.io/draft-flysystem-ts/)
+### This [CLI](https://github.com/nik-selecto/generator-draft-flysystem-ts-cli#readme) will help you to scaffolding base codebase for your adapter

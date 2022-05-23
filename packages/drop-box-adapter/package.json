@@ -1,6 +1,6 @@
 {
   "name": "@draft-flysystem-ts/drop-box-adapter",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "> TODO: description",
   "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
   "homepage": "https://github.com/nik-selecto/draft-flysystem-ts#readme",
@@ -27,7 +27,7 @@
     "lint": "npx eslint --fix 'src/**/*.ts'"
   },
   "dependencies": {
-    "@draft-flysystem-ts/general": "^0.3.0",
+    "@draft-flysystem-ts/general": "^1.0.0",
     "dropbox": "^10.29.0",
     "moment": "^2.29.3"
   },

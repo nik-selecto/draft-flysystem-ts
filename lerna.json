@@ -1,6 +1,6 @@
 {
   "packages": [
-    "packages/*"
+    "packages/{!(cli),}"
   ],
   "version": "1.0.1"
 }

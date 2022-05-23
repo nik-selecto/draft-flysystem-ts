@@ -15,8 +15,9 @@ const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
 // time.
 const TOKEN_PATH = 'token.json';
 let CREDENTIALS: CredentialsType | null = null;
+const WAIT_FRO_MANUAL_INPUT = 40 * 1000;
 
-async function _getAccessToken(oAuth2Client): Promise<OAuth2Client> {
+async function _getAccessToken(oAuth2Client: OAuth2Client): Promise<OAuth2Client> {
     const authUrl = oAuth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: SCOPES,
@@ -25,9 +26,9 @@ async function _getAccessToken(oAuth2Client): Promise<OAuth2Client> {
     return new Promise<OAuth2Client>((resolve, reject) => {
         const offError = setTimeout(() => {
             reject(new Error('Unfortunately first time these tests need manual input! Retry again and be ready to follow console instructions.'));
-        }, 30 * 1000);
+        }, WAIT_FRO_MANUAL_INPUT);
 
-        console.log('Authorize this app by visiting this url:', authUrl);
+        console.info('Authorize this app by visiting this url:', authUrl);
 
         const rl = readline.createInterface({
             input: process.stdin,
@@ -43,12 +44,12 @@ async function _getAccessToken(oAuth2Client): Promise<OAuth2Client> {
                     reject(authError);
                 }
 
-                oAuth2Client.setCredentials(token);
+                oAuth2Client.setCredentials(token!);
                 // Store the token to disk for later program executions
                 fs.writeFile(TOKEN_PATH, JSON.stringify(token), (fsError) => {
                     if (fsError) reject(fsError);
 
-                    console.log('Token stored to', TOKEN_PATH);
+                    console.info('Token stored to', TOKEN_PATH);
 
                     resolve(oAuth2Client);
                 });
@@ -57,7 +58,7 @@ async function _getAccessToken(oAuth2Client): Promise<OAuth2Client> {
     });
 }
 
-async function authorize(credentials): Promise<OAuth2Client> {
+async function authorize(credentials: CredentialsType): Promise<OAuth2Client> {
     const { client_secret, client_id, redirect_uris } = credentials.web;
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
@@ -76,25 +77,27 @@ async function authorize(credentials): Promise<OAuth2Client> {
 describe('GoogleDriveAdapter testing', () => {
     let flysystem: Filesystem<GoogleDriveAdapter>;
 
-    beforeAll(() => {
-        console.log('before all');
+    /**
+     * AT FIRST TIME OF TEST'S RUN YOU SHOULD MANUALY CLICK TO LINK IN TERMINAL
+     * IT WILL OPEN PAGE WITH ACCESS TOKEN
+     * COPY AND PASTE BACK TO CONSOLE
+     *
+     * (YOU HAVE 40 SECS)
+     */
+    beforeAll(async () => {
         // Load client secrets from a local file.
         CREDENTIALS = JSON.parse(fs.readFileSync('credentials.json', { encoding: 'utf-8' }).toString()) as CredentialsType;
 
-        console.log('CREDENTIALS', CREDENTIALS);
-    });
+        await authorize(CREDENTIALS!);
+    }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
     beforeEach(async () => {
-        console.log('before each');
-
-        const x = await authorize(CREDENTIALS);
-
-        console.log('x', x);
+        const x = await authorize(CREDENTIALS!);
 
         flysystem = new Filesystem(new GoogleDriveAdapter());
     });
 
     it('mock test', async () => {
-        expect(flysystem).toBeInstanceOf(GoogleDriveAdapter);
+        expect(flysystem).toBeInstanceOf(Filesystem);
     });
 });

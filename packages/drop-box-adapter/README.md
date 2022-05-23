@@ -4,7 +4,7 @@
 
 ## Description:
 This adapter allows you to work with [DropBox](https://www.dropbox.com/home).
-It works in composite with main [FileSystem class](../flysystem/README.md).
+It works in composite with main [FileSystem class](../flysystem/README.md). Also you may find useful codebase in [@draft-flysystem-ts/general](../general/README.md) module.
 Under the hood it use official [DropBox SDK for node.js](https://dropbox.github.io/dropbox-sdk-js/Dropbox.html).
 
 ## Specifics of this adapter:
@@ -16,6 +16,7 @@ Be careful. This adapter does not support "_visibility_" property and related to
 * [Move](#move-example)
 * [Rename](#move-example)
 * [Copy](#copy-example)
+
 #### Import and construct example:
 ```
 import { Filesystem } from '@draft-flysystem-ts/flysystem';
@@ -51,15 +52,5 @@ async function move(flysystem: Filesystem<DropboxAdapter>) {
 ```
 async function move(flysystem: Filesystem<DropboxAdapter>) {
     await flysystem.copy('your-dropbox/origin-file.mp4', 'your-dropbox/copy-file.mp4');
-}
-```
-#### Upload example:
-```
-import fs from 'fs';
-
-async function upload(flysystem: Filesystem<DropboxAdapter>) {
-    const pathToFile = join(__dirname, 'relative/path/to/your/file.mp4');
-
-    await flysystem.write('your/drop-box/file.mp4', fs.readFileSync(pathToFile));
 }
 ```

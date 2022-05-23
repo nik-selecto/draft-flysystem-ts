@@ -1,0 +1,3 @@
+describe('GoogleDriveAdapter testing', () => {
+    // TODO
+});

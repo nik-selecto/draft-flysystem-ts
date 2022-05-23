@@ -1,6 +1,6 @@
 {
   "name": "@draft-flysystem-ts/default-adapters",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "> TODO: description",
   "author": "nik-selecto <n.moiseienko@selectoglobal.com>",
   "homepage": "https://nik-selecto.github.io/draft-flysystem-ts/packages/default-adapters",
@@ -27,7 +27,7 @@
     "lint": "npx eslint --fix 'src/**/*.ts'"
   },
   "dependencies": {
-    "@draft-flysystem-ts/general": "^1.0.0",
+    "@draft-flysystem-ts/general": "^1.0.1",
     "file-type": "14",
     "lodash": "^4.17.21",
     "mime": "^3.0.0"

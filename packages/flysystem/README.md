@@ -1,13 +1,16 @@
 # `@draft-flysystem-ts/flysystem`
-## [HOME](https://nik-selecto.github.io/draft-flysystem-ts/)
+> this project is not completed yet
 
+## [=> Home page](https://nik-selecto.github.io/draft-flysystem-ts/)
 
-> TODO: description
+## Description:
+This is class should some storage adapter in constructor for work. See related repositories on home page.
 
 ## Usage
 
 ```
-const flysystem = require('@draft-flysystem-ts/flysystem');
+import { Filesystem } from '@draft-flysystem-ts/flysystem';
+import { SomeAdapter } from '@draft-flysystem-ts/*-adapter;
 
-// TODO: DEMONSTRATE API
+const flysystem: Filesystem<SomeAdapter> = new Filesysytem(new SomeAdapter());
 ```

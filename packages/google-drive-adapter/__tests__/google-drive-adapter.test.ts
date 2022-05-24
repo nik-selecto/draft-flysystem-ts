@@ -65,11 +65,19 @@ async function authorize(credentials: CredentialsType): Promise<OAuth2Client> {
     // Check if we have previously stored a token.
     return new Promise<OAuth2Client>((resolve) => {
         fs.readFile(join(__dirname, '..', TOKEN_PATH), (err, token) => {
-            if (err) return _getAccessToken(oAuth2Client).then(resolve);
+            if (!err) {
+                const creds = JSON.parse(token.toString());
 
-            oAuth2Client.setCredentials(JSON.parse(token.toString()));
+                // Check if access is fresh otherwise - has json refresh
+                if (creds.expiry_date > 5000 + Math.floor(new Date().getTime() / 1000)
+                    || credentials.refresh_token) {
+                    oAuth2Client.setCredentials(creds);
 
-            return resolve(oAuth2Client);
+                    return resolve(oAuth2Client);
+                }
+            }
+
+            return _getAccessToken(oAuth2Client).then(resolve);
         });
     });
 }

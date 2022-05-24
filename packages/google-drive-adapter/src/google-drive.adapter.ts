@@ -8,6 +8,7 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
+import { GDRIVE_FOLDER_MIME_TYPE } from './google-drive.constants';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
     gDrive!: v3.Drive;
@@ -25,13 +26,14 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
         console.log(files);
 
-        return files.map(({ kind, name }) => {
-            const isDir = !kind?.includes('file');
+        return files.map((file) => {
+            // GD has many of types. For us only 'folder' type is folder and all other - file (even 'unknown')
+            const isDir = file.mimeType === GDRIVE_FOLDER_MIME_TYPE;
 
             return {
                 isDir,
                 isFile: !isDir,
-                path: name || '',
+                path: '',
                 type: isDir ? FileType.dir : FileType.file,
             };
         });

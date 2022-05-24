@@ -2,12 +2,41 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    FileAttributes, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
+    FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
 } from '@draft-flysystem-ts/general';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
+// eslint-disable-next-line camelcase
+import { Auth, drive_v3 as v3, google } from 'googleapis';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
+    gDrive!: v3.Drive;
+
+    constructor(auth: Auth.OAuth2Client) {
+        this.gDrive = google.drive({ version: 'v3', auth });
+    }
+
+    // TODO check correctnicy of converting and use "path" and "deep" parameters
+    async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
+        const files = await this.gDrive.files.list({
+            includeTeamDriveItems: false,
+            prettyPrint: true,
+        }).then((res) => res.data.files) || [] as v3.Schema$File[];
+
+        console.log(files);
+
+        return files.map(({ kind, name }) => {
+            const isDir = !kind?.includes('file');
+
+            return {
+                isDir,
+                isFile: !isDir,
+                path: name || '',
+                type: isDir ? FileType.dir : FileType.file,
+            };
+        });
+    }
+
     getPathPrefix(): PathPrefixer {
         throw new Error('Method not implemented.');
     }
@@ -65,10 +94,6 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
-        throw new Error('Method not implemented.');
-    }
-
-    listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
         throw new Error('Method not implemented.');
     }
 

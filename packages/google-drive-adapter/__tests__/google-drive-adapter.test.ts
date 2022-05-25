@@ -46,7 +46,7 @@ async function _getAccessToken(oAuth2Client: OAuth2Client): Promise<OAuth2Client
 
                 oAuth2Client.setCredentials(token!);
                 // Store the token to disk for later program executions
-                fs.writeFile(TOKEN_PATH, JSON.stringify(token), (fsError) => {
+                fs.writeFile(TOKEN_PATH, JSON.stringify({ ...token, _created_at: new Date().getTime() }), (fsError) => {
                     if (fsError) reject(fsError);
 
                     console.info('Token stored to', TOKEN_PATH);
@@ -66,11 +66,12 @@ async function authorize(credentials: CredentialsType): Promise<OAuth2Client> {
     return new Promise<OAuth2Client>((resolve) => {
         fs.readFile(join(__dirname, '..', TOKEN_PATH), (err, token) => {
             if (!err) {
-                const creds = JSON.parse(token.toString());
+                const { _created_at = 0, ...creds } = JSON.parse(token.toString()) || {};
+
+                const isFresh = (_created_at + (creds.expiry_date || 0)) > (new Date().getTime() + 60 * 1000);
 
                 // Check if access is fresh otherwise - has json refresh
-                if (creds.expiry_date > 5000 + Math.floor(new Date().getTime() / 1000)
-                    || credentials.refresh_token) {
+                if (isFresh || creds.refresh_token) {
                     oAuth2Client.setCredentials(creds);
 
                     return resolve(oAuth2Client);

@@ -9,12 +9,20 @@ import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
 import { GDRIVE_FOLDER_MIME_TYPE } from './google-drive.constants';
+import { GDriveOptionsType } from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
     gDrive!: v3.Drive;
 
-    constructor(auth: Auth.OAuth2Client) {
-        this.gDrive = google.drive({ version: 'v3', auth });
+    constructor(
+        auth: Auth.OAuth2Client,
+        options: GDriveOptionsType = {},
+        root: string | null = null,
+    ) {
+        this.gDrive = google.drive({
+            version: 'v3',
+            auth,
+        });
     }
 
     // TODO check correctnicy of converting and use "path" and "deep" parameters

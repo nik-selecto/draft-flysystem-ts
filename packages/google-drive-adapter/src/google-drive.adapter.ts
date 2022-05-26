@@ -8,22 +8,109 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
-import { GDRIVE_FOLDER_MIME_TYPE } from './google-drive.constants';
-import { GDriveOptionsType } from './google-drive.types';
+import { GDRIVE_FOLDER_MIME_TYPE, GDRIVE_DEFAULT_OPTIONS } from './google-drive.constants';
+import { GDriveAllOptionsType, GDriveOptionsType } from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
-    gDrive!: v3.Drive;
+    private gDrive!: v3.Drive;
+
+    private options!: GDriveAllOptionsType;
+
+    private prefixer!: PathPrefixer;
+
+    protected root!: string | null;
+
+    private cachedPaths = new Map<string, string>();
+
+    private setPathPrefix(prefix: string) {
+        this.prefixer = new PathPrefixer(prefix);
+    }
 
     constructor(
         auth: Auth.OAuth2Client,
         options: GDriveOptionsType = {},
         root: string | null = null,
     ) {
+        this.options = { ...options, ...GDRIVE_DEFAULT_OPTIONS };
         this.gDrive = google.drive({
             version: 'v3',
             auth,
         });
+
+        // TODO we also need to implement this part of code
+        // if (root !== null) {
+        //     // eslint-disable-next-line no-param-reassign
+        //     root = root.replace(/^\//, '').replace(/$\//, '');
+        //     // eslint-disable-next-line no-param-reassign
+        //     if (root === '') root = null;
+        // }
+
+        this.root = root;
     }
+
+    protected indexString(str: string, ch = '/') {
+        const indices = [];
+
+        for (let i = 0, len = str.length; i < len; ++i) {
+            if (str[i] === ch) {
+                indices.push(i);
+            }
+        }
+        return indices;
+    }
+
+    protected getToken(path: string, index: number, indices: number[]) {
+        const isIndiceByIndex = !!indices[index];
+
+        if (index < 0 || !isIndiceByIndex) {
+            return '';
+        }
+
+        const start = index > 0 ? indices[index - 1] + 1 : 0;
+
+        return path.substring(start, isIndiceByIndex ? indices[index] : undefined);
+    }
+
+    // TODO TODO TODO TODO
+    // protected toVirtualPath(displayPath: string, makeFullVirtualPath = true, returnFirstItem = false) {
+    //     if (displayPath === '' || displayPath === '/' || displayPath === this.root) {
+    //         return '';
+    //     }
+
+    //     displayPath = displayPath
+    //         .replace(/^\//, '')
+    //         .replace(/$\//, '') // not needed
+
+    //     const indices = this.indexString(displayPath, '/');
+    //     indices.push(displayPath.length);
+
+    // TODO continue...
+    //     [$itemId, $pathMatch] = $this->getCachedPathId($displayPath, $indices);
+    //     $i = 0;
+    //     if ($pathMatch !== null) {
+    //         if (strcmp($pathMatch, $displayPath) === 0) {
+    //             if ($makeFullVirtualPath) {
+    //                 return $this->makeFullVirtualPath($displayPath, $returnFirstItem);
+    //             }
+    //             return $this->returnSingle($itemId, $returnFirstItem);
+    //         }
+    //         $i = array_search(strlen($pathMatch), $indices) + 1;
+    //     }
+    //     if ($itemId === null) {
+    //         $itemId = '';
+    //     }
+    //     $this->cachePaths($displayPath, $i, $indices, $itemId);
+
+    //     if ($makeFullVirtualPath) {
+    //         return $this->makeFullVirtualPath($displayPath, $returnFirstItem);
+    //     }
+
+    //     if (empty($this->cachedPaths[$displayPath])) {
+    //         throw UnableToReadFile::fromLocation($displayPath, 'File not found');
+    //     }
+
+    //     return $this->returnSingle($this->cachedPaths[$displayPath], $returnFirstItem);
+    // }
 
     // TODO check correctnicy of converting and use "path" and "deep" parameters
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {

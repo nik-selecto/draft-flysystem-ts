@@ -9,7 +9,9 @@ import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
 import { DIRMIME, GDRIVE_DEFAULT_OPTIONS } from './google-drive.constants';
-import { GDriveAllOptionsType, GDriveOptionsType, GDriveSpaceType } from './google-drive.types';
+import {
+    GDriveAllOptionsType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
+} from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
     private gDrive!: v3.Drive;
@@ -22,7 +24,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     protected root!: string | null;
 
-    protected publishPermission: unknown;
+    protected publishPermission: GDrivePublishPermissionType;
 
     protected cacheHasDirs?: unknown[];
 
@@ -47,15 +49,18 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     constructor(
-        auth: Auth.OAuth2Client,
+        gDrive: v3.Drive,
         options: GDriveOptionsType = {},
         root: string | null = null,
     ) {
-        this.options = { ...options, ...GDRIVE_DEFAULT_OPTIONS };
-        this.gDrive = google.drive({
-            version: 'v3',
-            auth,
-        });
+        this.options = { ...GDRIVE_DEFAULT_OPTIONS, ...options };
+        this.gDrive = gDrive;
+        this.spaces = options.spaces!;
+        this.useHasDir = options.useHasDir!;
+        this.usePermanentDelete = options.usePermanentDelete!;
+        this.publishPermission = options.publishPermission!;
+        this.useDisplayPaths = options.useDisplayPath!;
+        // this.optParams = this.cl
 
         // TODO we also need to implement this part of code
         // if (root !== null) {

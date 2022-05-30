@@ -96,7 +96,7 @@ describe('GoogleDriveAdapter testing', () => {
         // Load client secrets from a local file.
         CREDENTIALS = JSON.parse(fs.readFileSync('credentials.json', { encoding: 'utf-8' }).toString()) as CredentialsType;
         auth = await authorize(CREDENTIALS!);
-        flysystem = new Filesystem(new GoogleDriveAdapter(auth));
+        flysystem = new Filesystem(new GoogleDriveAdapter(google.drive({ version: 'v3', auth })));
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
     it.only('Should return list of files', async () => {

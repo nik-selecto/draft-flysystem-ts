@@ -2,16 +2,18 @@ export type GDriveFolderMimeType = 'application/vnd.google-apps.folder';
 
 export type GDriveSpaceType = 'drive' | 'appDataFolder' | 'photos';
 
+export type GDrivePublishPermissionType = {
+    type: 'anyone' | string, // TODO
+    role: 'reader' | string, // TODO
+    withLink: boolean,
+}
+
 export type GDriveAllOptionsType = {
-    spaces: 'drive' | 'photos' | 'appDataFolder',
+    spaces: GDriveSpaceType,
     useHasDir: boolean,
     useDisplayPath: boolean,
     usePermanentDelete: boolean,
-    publishPermission: {
-        type: string,
-        role: string,
-        withLink: boolean,
-    },
+    publishPermission: GDrivePublishPermissionType,
     appExportMap: {
         'application/vnd.google-apps.document' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.google-apps.spreadsheet' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

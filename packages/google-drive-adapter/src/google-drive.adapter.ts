@@ -9,7 +9,9 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
-import { DIRMIME, GDRIVE_DEFAULT_OPTIONS, OPERATION_TYPES } from './google-drive.constants';
+import {
+    DIRMIME, FILE_OBJECT_MINIMUM_VALID_TIME, GDRIVE_DEFAULT_OPTIONS, OPERATION_TYPES,
+} from './google-drive.constants';
 import {
     GDriveAllOptionsType, GDriveCorporaType, GDriveOperationType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
 } from './google-drive.types';
@@ -41,7 +43,11 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     protected cacheFileObjects: Record<string, v3.Schema$File> = {};
 
-    private requestedIds: unknown[] = [];
+    // TODO it seems to be type from SDK
+    private requestedIds: Record<string, {
+        type: boolean,
+        time: number,
+    }> = {};
 
     private optParams!: Record<GDriveOperationType, Record<string, unknown> & {
         supportsAllDrives?: boolean,
@@ -133,6 +139,262 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
         return result;
     }
+
+    protected returnSingle(item: string | string[], returnFirstItem: boolean) {
+        return returnFirstItem && Array.isArray(item)
+            ? item.shift()
+            : item;
+    }
+
+    protected getPathToIndex(path: string, i: number, indices: number[]) {
+        if (i < 0) {
+            return '';
+        }
+
+        if (!indices[i] || !indices[i + 1]) {
+            return path;
+        }
+
+        return path.slice(0, indices[i]);
+    }
+
+    protected markRequest(id: string, is_full_req: boolean) {
+        this.requestedIds[id] = {
+            type: is_full_req,
+            time: new Date().getTime(),
+        };
+    }
+
+    // protected canRequest(id: string, is_full_req: boolean) {
+    //     if (!this.requestedIds[id]) {
+    //         return true;
+    //     }
+
+    //     if (is_full_req && this.requestedIds[id]['type'] === false) {
+    //         return true;
+    //     } // we're making a full dir request and previous request was dirs only...allow
+    //     if (new Date().getTime() - this.requestedIds[id]['time'] > FILE_OBJECT_MINIMUM_VALID_TIME) {
+    //         return true;
+    //     }
+
+    //     return false; // not yet
+    // }
+
+    // async public refreshToken() {
+    //     const client = await google.auth
+    //     .getClient()
+    //     .then((res) => res.getAccessToken())
+    //     .then((res) => res.token);
+
+    //     if ($client->isAccessTokenExpired()) {
+    //         if ($client->isUsingApplicationDefaultCredentials()) {
+    //             $client->fetchAccessTokenWithAssertion();
+    //         } else {
+    //             $refreshToken = $client->getRefreshToken();
+    //             if ($refreshToken) {
+    //                 $client->fetchAccessTokenWithRefreshToken($refreshToken);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // protected getItems(dirname: string, recursive = false, maxResults = 0, query = '') {
+    //     this.refreshToken();
+    //     [, $itemId] = $this->splitPath($dirname);
+
+    //     $maxResults = min($maxResults, 1000);
+    //     $results = [];
+    //     $parameters = [
+    //         'pageSize' => $maxResults ?: 1000,
+    //         'fields' => self::FETCHFIELDS_LIST,
+    //         'orderBy' => 'folder,modifiedTime,name',
+    //         'spaces' => $this->spaces,
+    //         'q' => sprintf('trashed = false and "%s" in parents', $itemId)
+    //     ];
+    //     if ($query) {
+    //         $parameters['q'] .= ' and ('.$query.')';
+    //     }
+    //     $pageToken = null;
+    //     $gFiles = $this->service->files;
+    //     $this->cacheHasDirs[$itemId] = false;
+    //     $setHasDir = [];
+
+    //     do {
+    //         try {
+    //             if ($pageToken) {
+    //                 $parameters['pageToken'] = $pageToken;
+    //             }
+    //             $fileObjs = $gFiles->listFiles($this->applyDefaultParams($parameters, 'files.list'));
+    //             if ($fileObjs instanceof FileList) {
+    //                 foreach ($fileObjs as $obj) {
+    //                     $id = $obj->getId();
+    //                     $this->cacheFileObjects[$id] = $obj;
+    //                     $result = $this->normaliseObject($obj, $dirname);
+    //                     $results[$id] = $result;
+    //                     if ($result->isDir()) {
+    //                         if ($this->useHasDir) {
+    //                             $setHasDir[$id] = $id;
+    //                         }
+    //                         if ($this->cacheHasDirs[$itemId] === false) {
+    //                             $this->cacheHasDirs[$itemId] = true;
+    //                             unset($setHasDir[$itemId]);
+    //                         }
+    //                         if ($recursive) {
+    //                             $results = array_merge($results, $this->getItems($result->extraMetadata()['virtual_path'], true, $maxResults, $query));
+    //                         }
+    //                     }
+    //                 }
+    //                 $pageToken = $fileObjs->getNextPageToken();
+    //             } else {
+    //                 $pageToken = null;
+    //             }
+    //         } catch (Throwable $e) {
+    //             $pageToken = null;
+    //         }
+    //     } while ($pageToken && $maxResults === 0);
+
+    //     if ($setHasDir) {
+    //         $results = $this->setHasDir($setHasDir, $results);
+    //     }
+    //     return array_values($results);
+    // }
+
+    // protected cachePaths(displayPath: string, i: number, indices: number[], parentItemId: string)
+    // {
+    //     let nextItemId: string | string[] = parentItemId;
+
+    //     for (const count = indices.length; i < count; ++i) {
+    //         const token = this.getToken(displayPath, i, indices);
+
+    //         if (token && token !== '0') {
+    //             return;
+    //         }
+
+    //         let basePath = this.getPathToIndex(displayPath, i - 2, indices);
+
+    //         if (!basePath) {
+    //             basePath += '/';
+    //         }
+
+    //         if (nextItemId === null) {
+    //             return;
+    //         }
+
+    //         const is_last = i === count - 1;
+
+    //         // search only for directories unless it's the last token
+    //         if (!Array.isArray(nextItemId)) {
+    //             nextItemId = [nextItemId];
+    //         }
+
+    //         const items = [];
+
+    //         nextItemId.forEach((id) => {
+    //             if (!this.canRequest(id, is_last)) {
+    //                 continue;
+    //             }
+
+    //             this.markRequest(id, is_last);
+
+    //             const query = is_last ? [] : [`mimeType = "${DIRMIME}"`];
+
+    //             query.push("name = '{$token}'");
+    //             items.push(this.getItems($id, false, 0, implode(' and ', $query));
+    //             if (DEBUG_ME) {
+    //                 echo " ...done\n";
+    //             }
+    //         }
+    //         if (!empty($items)) {
+    //             /** @noinspection SlowArrayOperationsInLoopInspection */
+    //             $items = array_merge(...$items);
+    //         }
+
+    //         $nextItemId = null;
+    //         foreach ($items as $itemObj) {
+    //             $item = $itemObj->extraMetadata();
+    //             $itemId = basename($item['virtual_path']);
+    //             $fullPath = $basePath.$item['display_path'];
+
+    //             // update cache
+    //             if (!isset($this->cachedPaths[$fullPath])) {
+    //                 $this->cachedPaths[$fullPath] = $itemId;
+    //                 if (DEBUG_ME) {
+    //                     echo 'Caching: '.$fullPath.' => '.$itemId."\n";
+    //                 }
+    //             } else {
+    //                 if (!is_array($this->cachedPaths[$fullPath])) {
+    //                     if ($itemId !== $this->cachedPaths[$fullPath]) {
+    //                         // convert to array
+    //                         $this->cachedPaths[$fullPath] = [
+    //                             $this->cachedPaths[$fullPath],
+    //                             $itemId
+    //                         ];
+
+    //                         if (DEBUG_ME) {
+    //                             echo 'Caching [DUP]: '.$fullPath.' => '.$itemId."\n";
+    //                         }
+    //                     }
+    //                 } else {
+    //                     if (!in_array($itemId, $this->cachedPaths[$fullPath])) {
+    //                         $this->cachedPaths[$fullPath][] = $itemId;
+    //                         if (DEBUG_ME) {
+    //                             echo 'Caching [DUP]: '.$fullPath.' => '.$itemId."\n";
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             if (basename($item['display_path']) === $token) {
+    //                 $nextItemId = $this->cachedPaths[$fullPath];
+    //             } // found our token
+    //         }
+    //     }
+    // }
+
+    // // TODO TODO TODO TODO
+    // protected toVirtualPath(displayPath: string, makeFullVirtualPath = true, returnFirstItem = false) {
+    //     if (displayPath === '' || displayPath === '/' || displayPath === this.root) {
+    //         return '';
+    //     }
+
+    //     displayPath = displayPath
+    //         .replace(/^\//, '')
+    //         .replace(/$\//, '') // not needed
+
+    //     const indices = this.indexString(displayPath, '/');
+    //     indices.push(displayPath.length);
+
+    //     let [itemId, pathMatch] = this.getCachedPathId(displayPath, indices);
+    //     let i = 0;
+
+    //     if (pathMatch !== null) {
+    //         // TODO WTF ???
+    //         if ((pathMatch as string).localeCompare(displayPath) === 0) {
+    //             if (makeFullVirtualPath) {
+    //                 return this.makeFullVirtualPath(displayPath, returnFirstItem);
+    //             }
+
+    //             return this.returnSingle(itemId, returnFirstItem);
+    //         }
+
+    //         i = indices.indexOf(pathMatch.length) + 1;
+    //     }
+    //     if (itemId === null) {
+    //         itemId = '';
+    //     }
+
+    //     this.cachePaths($displayPath, $i, $indices, $itemId);
+
+    //     if ($makeFullVirtualPath) {
+    //         return $this -> makeFullVirtualPath($displayPath, $returnFirstItem);
+    //     }
+
+    //     if (empty($this -> cachedPaths[$displayPath])) {
+    //         throw UnableToReadFile:: fromLocation($displayPath, 'File not found');
+    //     }
+
+    //     return $this -> returnSingle($this -> cachedPaths[$displayPath], $returnFirstItem);
+    // }
 
     protected makeFullVirtualPath(displayPath: string, returnFirstItem = false) {
         let paths: Record<string, v3.Schema$File | null> = { '': null };

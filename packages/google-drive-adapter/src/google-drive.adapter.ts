@@ -10,7 +10,7 @@ import { Readable } from 'stream';
 import { Auth, drive_v3 as v3, google } from 'googleapis';
 import { DIRMIME, GDRIVE_DEFAULT_OPTIONS, OPERATION_TYPES } from './google-drive.constants';
 import {
-    GDriveAllOptionsType, GDriveOperationType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
+    GDriveAllOptionsType, GDriveCorporaType, GDriveOperationType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
 } from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
@@ -18,7 +18,9 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     protected spaces!: GDriveSpaceType;
 
-    private options!: GDriveAllOptionsType;
+    private options!: GDriveAllOptionsType & {
+        teamDriveId?: boolean,
+    };
 
     private prefixer!: PathPrefixer;
 
@@ -40,7 +42,12 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     private requestedIds: unknown[] = [];
 
-    private optParams!: Record<string, unknown>;
+    private optParams!: Record<GDriveOperationType, Record<string, unknown> & {
+        supportsAllDrives?: boolean,
+        corpora?: GDriveCorporaType,
+        includeItemsFromAllDrives?: boolean,
+        driverId?: string,
+    }>;
 
     private cachedPaths = new Map<string, string>();
 
@@ -62,15 +69,39 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         this.useDisplayPaths = this.options.useDisplayPath!;
         this.optParams = this.cleanOptParameteres(this.options.parameters!);
 
-        // TODO we also need to implement this part of code
-        // if (root !== null) {
-        //     // eslint-disable-next-line no-param-reassign
-        //     root = root.replace(/^\//, '').replace(/$\//, '');
-        //     // eslint-disable-next-line no-param-reassign
-        //     if (root === '') root = null;
-        // }
+        let _root = root;
+
+        if (_root !== null) {
+            _root = _root.replace(/^\//, '').replace(/$\//, '');
+
+            if (_root === '') {
+                _root = null;
+            }
+        }
+
+        if (this.options.teamDriveId) {
+            this.root = null;
+        }
 
         this.root = root;
+    }
+
+    public enableTeamDriveSupport() {
+        OPERATION_TYPES.forEach((type) => {
+            this.optParams[type].supportsAllDrives = true;
+        });
+    }
+
+    public setTeamDriveId(teamDriveId: string, corpora: GDriveCorporaType = 'drive') {
+        this.enableTeamDriveSupport();
+        this.optParams['files.list'].corpora = corpora;
+        this.optParams['files.list'].driverId = teamDriveId;
+        this.optParams['files.list'].includeItemsFromAllDrives = true;
+
+        if (this.root === 'root' || this.root === null) {
+            this.setPathPrefix('');
+            this.root = teamDriveId;
+        }
     }
 
     protected indexString(str: string, ch = '/') {
@@ -96,31 +127,16 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         return path.substring(start, isIndiceByIndex ? indices[index] : undefined);
     }
 
-    private cleanOptParameteres(parameters: Record<string, unknown>) {
-        console.log(parameters);
+    private cleanOptParameteres(parameters: Record<string, Record<string, unknown>>) {
         const implicitParams = Object.getOwnPropertyNames(parameters);
 
-        const params = OPERATION_TYPES.reduce((acc, type) => {
-            if (implicitParams.includes(type)) {
-                acc[type] = parameters[type];
-                // eslint-disable-next-line no-param-reassign
-                delete parameters[type];
-            }
-
-            acc[type] = implicitParams.includes(type)
-                ? parameters[type]
-                : [];
-
-            return acc;
-        }, {} as Record<GDriveOperationType, unknown>);
-
-        return implicitParams.length
-            ? implicitParams.reduce((acc, type) => {
-                acc[type] = parameters[type];
+        return OPERATION_TYPES
+            .filter((type) => !implicitParams.includes(type))
+            .reduce((acc, type) => {
+                acc[type] = {};
 
                 return acc;
-            }, params as Record<string, unknown>)
-            : params;
+            }, parameters);
     }
     // TODO TODO TODO TODO
     // protected toVirtualPath(displayPath: string, makeFullVirtualPath = true, returnFirstItem = false) {

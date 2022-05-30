@@ -2,6 +2,8 @@ export type GDriveFolderMimeType = 'application/vnd.google-apps.folder';
 
 export type GDriveSpaceType = 'drive' | 'appDataFolder' | 'photos';
 
+export type GDriveCorporaType = 'user' | 'drive' | 'domain' | 'allDrives';
+
 export type GDrivePublishPermissionType = {
     type: 'anyone' | string, // TODO
     role: 'reader' | string, // TODO
@@ -31,7 +33,7 @@ export type GDriveAllOptionsType = {
         'application/vnd.google-apps.script': 'application/vnd.google-apps.script+json',
         default: 'application/pdf'
     },
-    parameters: Record<string, unknown>,
+    parameters: Record<string, Record<string, unknown>>,
     driveId: null,
     sanitize_chars: string[],
     sanitize_replacement_char: string,

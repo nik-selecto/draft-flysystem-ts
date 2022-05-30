@@ -1,5 +1,7 @@
 export type GDriveFolderMimeType = 'application/vnd.google-apps.folder';
 
+export type GDriveSpaceType = 'drive' | 'appDataFolder' | 'photos';
+
 export type GDriveAllOptionsType = {
     spaces: 'drive' | 'photos' | 'appDataFolder',
     useHasDir: boolean,

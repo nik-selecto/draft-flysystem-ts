@@ -1,6 +1,14 @@
 import { GDriveFolderMimeType, GDriveAllOptionsType } from './google-drive.types';
 
-export const GDRIVE_FOLDER_MIME_TYPE: GDriveFolderMimeType = 'application/vnd.google-apps.folder';
+export const DIRMIME: GDriveFolderMimeType = 'application/vnd.google-apps.folder';
+
+export const MAX_CHUNK_SIZE = 100 * 1024 * 1024;
+
+export const FILE_OBJECT_MINIMUM_VALID_TIME = 10;
+
+export const FETCHFIELDS_LIST = 'files(id,mimeType,createdTime,modifiedTime,name,parents,permissions,size,webContentLink),nextPageToken';
+
+export const FETCHFIELDS_GET = 'id,name,mimeType,createdTime,modifiedTime,parents,permissions,size,webContentLink,webViewLink';
 
 export const GDRIVE_DEFAULT_OPTIONS: GDriveAllOptionsType = {
     spaces: 'drive',

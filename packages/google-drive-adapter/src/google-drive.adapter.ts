@@ -8,17 +8,37 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
-import { GDRIVE_FOLDER_MIME_TYPE, GDRIVE_DEFAULT_OPTIONS } from './google-drive.constants';
-import { GDriveAllOptionsType, GDriveOptionsType } from './google-drive.types';
+import { DIRMIME, GDRIVE_DEFAULT_OPTIONS } from './google-drive.constants';
+import { GDriveAllOptionsType, GDriveOptionsType, GDriveSpaceType } from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
     private gDrive!: v3.Drive;
+
+    protected spaces!: GDriveSpaceType;
 
     private options!: GDriveAllOptionsType;
 
     private prefixer!: PathPrefixer;
 
     protected root!: string | null;
+
+    protected publishPermission: unknown;
+
+    protected cacheHasDirs?: unknown[];
+
+    protected useHasDir = false;
+
+    protected usePermanentDelete = false;
+
+    protected useDisplayPaths = true;
+
+    protected rootId: string | null = null;
+
+    protected cacheFileObjects?: unknown[];
+
+    private requestedIds: unknown[] = [];
+
+    private optParams: unknown[] = [];
 
     private cachedPaths = new Map<string, string>();
 
@@ -123,7 +143,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
         return files.map((file) => {
             // GD has many of types. For us only 'folder' type is folder and all other - file (even 'unknown')
-            const isDir = file.mimeType === GDRIVE_FOLDER_MIME_TYPE;
+            const isDir = file.mimeType === DIRMIME;
 
             return {
                 isDir,

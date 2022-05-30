@@ -8,9 +8,9 @@ import { ReadStream } from 'fs';
 import { Readable } from 'stream';
 // eslint-disable-next-line camelcase
 import { Auth, drive_v3 as v3, google } from 'googleapis';
-import { DIRMIME, GDRIVE_DEFAULT_OPTIONS } from './google-drive.constants';
+import { DIRMIME, GDRIVE_DEFAULT_OPTIONS, OPERATION_TYPES } from './google-drive.constants';
 import {
-    GDriveAllOptionsType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
+    GDriveAllOptionsType, GDriveOperationType, GDriveOptionsType, GDrivePublishPermissionType, GDriveSpaceType,
 } from './google-drive.types';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
@@ -40,7 +40,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     private requestedIds: unknown[] = [];
 
-    private optParams: unknown[] = [];
+    private optParams!: Record<string, unknown>;
 
     private cachedPaths = new Map<string, string>();
 
@@ -55,12 +55,12 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     ) {
         this.options = { ...GDRIVE_DEFAULT_OPTIONS, ...options };
         this.gDrive = gDrive;
-        this.spaces = options.spaces!;
-        this.useHasDir = options.useHasDir!;
-        this.usePermanentDelete = options.usePermanentDelete!;
-        this.publishPermission = options.publishPermission!;
-        this.useDisplayPaths = options.useDisplayPath!;
-        // this.optParams = this.cl
+        this.spaces = this.options.spaces!;
+        this.useHasDir = this.options.useHasDir!;
+        this.usePermanentDelete = this.options.usePermanentDelete!;
+        this.publishPermission = this.options.publishPermission!;
+        this.useDisplayPaths = this.options.useDisplayPath!;
+        this.optParams = this.cleanOptParameteres(this.options.parameters!);
 
         // TODO we also need to implement this part of code
         // if (root !== null) {
@@ -96,6 +96,32 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         return path.substring(start, isIndiceByIndex ? indices[index] : undefined);
     }
 
+    private cleanOptParameteres(parameters: Record<string, unknown>) {
+        console.log(parameters);
+        const implicitParams = Object.getOwnPropertyNames(parameters);
+
+        const params = OPERATION_TYPES.reduce((acc, type) => {
+            if (implicitParams.includes(type)) {
+                acc[type] = parameters[type];
+                // eslint-disable-next-line no-param-reassign
+                delete parameters[type];
+            }
+
+            acc[type] = implicitParams.includes(type)
+                ? parameters[type]
+                : [];
+
+            return acc;
+        }, {} as Record<GDriveOperationType, unknown>);
+
+        return implicitParams.length
+            ? implicitParams.reduce((acc, type) => {
+                acc[type] = parameters[type];
+
+                return acc;
+            }, params as Record<string, unknown>)
+            : params;
+    }
     // TODO TODO TODO TODO
     // protected toVirtualPath(displayPath: string, makeFullVirtualPath = true, returnFirstItem = false) {
     //     if (displayPath === '' || displayPath === '/' || displayPath === this.root) {

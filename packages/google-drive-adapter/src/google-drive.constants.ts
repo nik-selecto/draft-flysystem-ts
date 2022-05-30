@@ -1,4 +1,4 @@
-import { GDriveFolderMimeType, GDriveAllOptionsType } from './google-drive.types';
+import { GDriveFolderMimeType, GDriveAllOptionsType, GDriveOperationType } from './google-drive.types';
 
 export const DIRMIME: GDriveFolderMimeType = 'application/vnd.google-apps.folder';
 
@@ -9,6 +9,11 @@ export const FILE_OBJECT_MINIMUM_VALID_TIME = 10;
 export const FETCHFIELDS_LIST = 'files(id,mimeType,createdTime,modifiedTime,name,parents,permissions,size,webContentLink),nextPageToken';
 
 export const FETCHFIELDS_GET = 'id,name,mimeType,createdTime,modifiedTime,parents,permissions,size,webContentLink,webViewLink';
+
+export const OPERATION_TYPES: GDriveOperationType[] = [
+    'files.copy', 'files.create', 'files.delete',
+    'files.trash', 'files.get', 'files.list',
+    'files.update', 'files.watch'];
 
 export const GDRIVE_DEFAULT_OPTIONS: GDriveAllOptionsType = {
     spaces: 'drive',
@@ -28,7 +33,7 @@ export const GDRIVE_DEFAULT_OPTIONS: GDriveAllOptionsType = {
         'application/vnd.google-apps.script': 'application/vnd.google-apps.script+json',
         default: 'application/pdf',
     },
-    parameters: [],
+    parameters: {},
     driveId: null,
     sanitize_chars: [
         '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>',

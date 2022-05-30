@@ -8,6 +8,15 @@ export type GDrivePublishPermissionType = {
     withLink: boolean,
 }
 
+export type GDriveOperationType = 'files.copy'
+    | 'files.create'
+    | 'files.delete'
+    | 'files.trash'
+    | 'files.get'
+    | 'files.list'
+    | 'files.update'
+    | 'files.watch';
+
 export type GDriveAllOptionsType = {
     spaces: GDriveSpaceType,
     useHasDir: boolean,
@@ -15,14 +24,14 @@ export type GDriveAllOptionsType = {
     usePermanentDelete: boolean,
     publishPermission: GDrivePublishPermissionType,
     appExportMap: {
-        'application/vnd.google-apps.document' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.google-apps.spreadsheet' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.google-apps.drawing' : 'application/pdf',
-        'application/vnd.google-apps.presentation' : 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'application/vnd.google-apps.script' : 'application/vnd.google-apps.script+json',
-        default : 'application/pdf'
+        'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.google-apps.spreadsheet': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.google-apps.drawing': 'application/pdf',
+        'application/vnd.google-apps.presentation': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.google-apps.script': 'application/vnd.google-apps.script+json',
+        default: 'application/pdf'
     },
-    parameters: [],
+    parameters: Record<string, unknown>,
     driveId: null,
     sanitize_chars: string[],
     sanitize_replacement_char: string,

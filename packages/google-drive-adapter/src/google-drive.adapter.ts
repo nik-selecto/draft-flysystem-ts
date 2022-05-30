@@ -1,8 +1,9 @@
+/* eslint-disable camelcase */
 // TODO rm these 3 lines of comment
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
+    FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, UnableToReadFileException, Visibility,
 } from '@draft-flysystem-ts/general';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
@@ -19,7 +20,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     protected spaces!: GDriveSpaceType;
 
     private options!: GDriveAllOptionsType & {
-        teamDriveId?: boolean,
+        teamDriveId?: string,
     };
 
     private prefixer!: PathPrefixer;
@@ -38,7 +39,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     protected rootId: string | null = null;
 
-    protected cacheFileObjects?: unknown[];
+    protected cacheFileObjects: Record<string, v3.Schema$File> = {};
 
     private requestedIds: unknown[] = [];
 
@@ -49,7 +50,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         driverId?: string,
     }>;
 
-    private cachedPaths = new Map<string, string>();
+    private cachedPaths = {} as Record<string, string | string[]>;
 
     private setPathPrefix(prefix: string) {
         this.prefixer = new PathPrefixer(prefix);
@@ -81,9 +82,114 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
         if (this.options.teamDriveId) {
             this.root = null;
+            this.setTeamDriveId(this.options.teamDriveId);
+
+            if (this.useDisplayPaths && _root !== null) {
+                // this.root = TODO
+            }
         }
 
         this.root = root;
+    }
+
+    // TODO check!
+    protected getCachedPathId(path: string, indices: number[] | null = null) {
+        const { length: pathLen } = path;
+
+        if (indices === null) {
+            // eslint-disable-next-line no-param-reassign
+            indices = this.indexString(path, '/');
+            indices.push(pathLen);
+        }
+
+        let maxLen = 0;
+        let itemId = null;
+        let pathMatch = null;
+        const entries = Object.entries(this.cachedPaths);
+        let result: [string, string | string[]];
+
+        for (let i = 0, { length } = entries; i < length; ++i) {
+            const [pathFrag, id] = entries[i];
+            const { length: len } = pathFrag;
+
+            if (len > pathLen || len < maxLen || !indices.includes(len)) {
+                // eslint-disable-next-line no-continue
+                continue;
+            }
+
+            if (pathFrag.slice(0, len).localeCompare(path.slice(0, len)) === 0) {
+                if (len === pathLen) {
+                    result = [pathFrag, id];
+                } // we found a perfect match
+
+                maxLen = len;
+                itemId = id;
+                pathMatch = pathFrag;
+            }
+        }
+
+        // we found a partial match or none at all
+        result = [pathMatch!, itemId!];
+
+        return result;
+    }
+
+    protected makeFullVirtualPath(displayPath: string, returnFirstItem = false) {
+        let paths: Record<string, v3.Schema$File | null> = { '': null };
+        let tmp = '';
+        const tokens = displayPath.replace(/^\//, '').replace(/$\//, '').split('/');
+
+        tokens.forEach((token) => {
+            if (tmp === '') {
+                tmp += token;
+            } else {
+                tmp += `/${token}`;
+            }
+
+            if (this.cachedPaths[tmp].length === 0) {
+                throw new UnableToReadFileException(`File not found (location: <${displayPath}>)`);
+            }
+
+            const new_paths: Record<string, v3.Schema$File> = {};
+
+            Object.entries(paths).forEach(([path, obj]) => {
+                const parentId = path === ''
+                    ? ''
+                    : path.slice(path.lastIndexOf('/') || 0);
+
+                (Array.isArray(this.cachedPaths[tmp])
+                    ? this.cachedPaths[tmp] as string[]
+                    : [this.cachedPaths[tmp] as string]).forEach((id) => {
+                    if (parentId === ' ' || this.cacheFileObjects[id].parents?.includes(parentId)) {
+                        new_paths[`${path}/${id}`] = this.cacheFileObjects[id];
+                    }
+                });
+            });
+
+            paths = new_paths;
+        });
+
+        const { length: count } = Object.keys(paths);
+
+        if (count === 0) {
+            throw new UnableToReadFileException(`File not found (location: <${displayPath}`);
+        }
+
+        let sorted = Object.values(paths);
+
+        if (count > 1) {
+            // sort oldest to newest
+            sorted = Object.values(paths as Record<string, v3.Schema$File>).sort((a, b) => {
+                const t1 = new Date(a.createdTime!).getTime();
+                const t2 = new Date(b.createdTime!).getTime();
+
+                return t1 - t2;
+            });
+        }
+
+        return returnFirstItem
+            ? sorted.shift()
+            : sorted;
     }
 
     public enableTeamDriveSupport() {
@@ -138,46 +244,6 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
                 return acc;
             }, parameters);
     }
-    // TODO TODO TODO TODO
-    // protected toVirtualPath(displayPath: string, makeFullVirtualPath = true, returnFirstItem = false) {
-    //     if (displayPath === '' || displayPath === '/' || displayPath === this.root) {
-    //         return '';
-    //     }
-
-    //     displayPath = displayPath
-    //         .replace(/^\//, '')
-    //         .replace(/$\//, '') // not needed
-
-    //     const indices = this.indexString(displayPath, '/');
-    //     indices.push(displayPath.length);
-
-    // TODO continue...
-    //     [$itemId, $pathMatch] = $this->getCachedPathId($displayPath, $indices);
-    //     $i = 0;
-    //     if ($pathMatch !== null) {
-    //         if (strcmp($pathMatch, $displayPath) === 0) {
-    //             if ($makeFullVirtualPath) {
-    //                 return $this->makeFullVirtualPath($displayPath, $returnFirstItem);
-    //             }
-    //             return $this->returnSingle($itemId, $returnFirstItem);
-    //         }
-    //         $i = array_search(strlen($pathMatch), $indices) + 1;
-    //     }
-    //     if ($itemId === null) {
-    //         $itemId = '';
-    //     }
-    //     $this->cachePaths($displayPath, $i, $indices, $itemId);
-
-    //     if ($makeFullVirtualPath) {
-    //         return $this->makeFullVirtualPath($displayPath, $returnFirstItem);
-    //     }
-
-    //     if (empty($this->cachedPaths[$displayPath])) {
-    //         throw UnableToReadFile::fromLocation($displayPath, 'File not found');
-    //     }
-
-    //     return $this->returnSingle($this->cachedPaths[$displayPath], $returnFirstItem);
-    // }
 
     // TODO check correctnicy of converting and use "path" and "deep" parameters
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {

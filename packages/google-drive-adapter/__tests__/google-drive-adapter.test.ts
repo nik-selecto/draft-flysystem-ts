@@ -9,6 +9,7 @@ import { Filesystem } from '@draft-flysystem-ts/flysystem';
 import { inspect } from 'util';
 import { GoogleDriveAdapter } from '../src';
 
+// eslint-disable-next-line no-console
 const log = (...args: any[]) => args.forEach((a) => console.log(inspect(a, { colors: true, depth: null })));
 
 type CredentialsType = Record<string, any> & { web: any };

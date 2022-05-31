@@ -15,9 +15,9 @@ export class VirtualPathMapper {
 
     public async virtualize(rootId?: string | null): Promise<string[] | any> {
         const _rootId = rootId
-            || rootId === null
-            ? null
-            : await this.getRootFolderId();
+            || (rootId === null
+                ? null
+                : await this.getRootFolderId());
 
         if (!_rootId) return [];
 

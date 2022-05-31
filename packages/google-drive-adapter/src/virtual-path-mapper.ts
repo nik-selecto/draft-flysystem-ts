@@ -6,22 +6,19 @@ import { drive_v3 as v3 } from 'googleapis';
 import { inspect } from 'util';
 import { FOLDER_MIME_TYPE } from './google-drive.constants';
 
+type FileProjectionType = { id: string, parents: [string], name: string, mimeType: string };
 type IdStorageNodeType = { id: string, name: string, childs: { name: string, id: string }[] };
 
 export class VirtualPathMapper {
-    private static cache: Map<string, any> = new Map();
-
     constructor(private gDrive: v3.Drive) { }
 
-    public async virtualize(rootId?: string | null): Promise<string[] | any> {
-        const _rootId = rootId
-            || (rootId === null
-                ? null
-                : await this.getRootFolderId());
+    // TODO add cache possibility
+    public async virtualize(): Promise<string[]> {
+        const rootId = await this.getRootFolderId();
 
-        if (!_rootId) return [];
+        if (!rootId) return [];
 
-        const all: { id: string, name: string, parents: [string], mimeType: string }[] = [];
+        const all: FileProjectionType[] = [];
         let pageToken: string | null | undefined;
         let totalReqCount = 0;
 
@@ -29,7 +26,7 @@ export class VirtualPathMapper {
             // eslint-disable-next-line no-await-in-loop
             const { data: { nextPageToken, files } } = await this.gDrive.files.list({
                 q: `visibility = "limited"
-                    and mimeType = '${FOLDER_MIME_TYPE}'
+                    and mimeType = "${FOLDER_MIME_TYPE}"
                     and trashed = false`,
                 fields: `files(id, parents, name, mimeType), nextPageToken`,
                 pageSize: 100,
@@ -38,7 +35,7 @@ export class VirtualPathMapper {
             ++totalReqCount;
             pageToken = nextPageToken;
 
-            if (files) all.push(...files! as any[]); // TODO
+            if (files) all.push(...files! as FileProjectionType[]); // TODO
         } while (pageToken && totalReqCount < 50);
 
         const idMap = all
@@ -60,9 +57,9 @@ export class VirtualPathMapper {
                 }
 
                 return acc;
-            }, new Map<string, IdStorageNodeType>().set(_rootId, { childs: [], id: _rootId, name: 'root' }));
+            }, new Map<string, IdStorageNodeType>().set(rootId, { childs: [], id: rootId, name: 'root' }));
 
-        return this.generateFullPaths(idMap, _rootId);
+        return this.generateFullPaths(idMap, rootId);
     }
 
     private generateFullPaths(idMap: Map<string, IdStorageNodeType>, parentId: string): string[] {

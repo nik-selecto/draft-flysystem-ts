@@ -9,6 +9,9 @@ import { Readable } from 'stream';
 import { drive_v3 as v3 } from 'googleapis';
 import { VirtualPathMapper } from './virtual-path-mapper';
 
+function trimSlashes(str: string) {
+    return `/${str.replace(/^\//, '').replace(/$\//, '')}`;
+}
 export class GoogleDriveAdapter implements IFilesystemAdapter {
     constructor(
         // private tsGoogleDrive: TsGoogleDrive,
@@ -18,7 +21,14 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        return new VirtualPathMapper(this.gDrive).virtualize() as any;
+        const folders = await new VirtualPathMapper(this.gDrive).virtualize();
+        const _path = trimSlashes(path);
+
+        if (!folders.includes(_path)) {
+            throw new Error(`No such directory found. ("${path}")`);
+        }
+
+        return folders as any;
     }
 
     getPathPrefix(): PathPrefixer {

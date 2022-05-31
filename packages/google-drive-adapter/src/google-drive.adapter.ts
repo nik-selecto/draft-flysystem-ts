@@ -4,13 +4,21 @@
 import {
     FileAttributes, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
 } from '@draft-flysystem-ts/general';
-import { ReadStream } from 'fs';
+import fs, { ReadStream } from 'fs';
 import { Readable } from 'stream';
 import { drive_v3 as v3 } from 'googleapis';
+import { VirtualPathMapper } from './virtual-path-mapper';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
-    constructor(private gDrive: v3.Drive) {
+    constructor(
+        // private tsGoogleDrive: TsGoogleDrive,
+        private gDrive: v3.Drive,
+    ) {
 
+    }
+
+    async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
+        return new VirtualPathMapper(this.gDrive).virtualize() as any;
     }
 
     getPathPrefix(): PathPrefixer {
@@ -25,8 +33,21 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         throw new Error('Method not implemented.');
     }
 
-    write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
-        throw new Error('Method not implemented.');
+    async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
+        try {
+            const res = await this.gDrive.files.create({
+                media: {
+                    body: contents,
+                },
+            });
+
+            return res as any;
+        } catch (error) {
+            console.error(error);
+            console.error('! ! !');
+        }
+
+        return null as any;
     }
 
     writeStream(path: string, resource: Readable, config?: IFilesystemVisibility | undefined): Promise<void> {
@@ -71,10 +92,6 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
     fileSize(path: string): Promise<RequireOne<FileAttributes, 'fileSize'>> {
         throw new Error('Method not implemented.');
-    }
-
-    listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        return this.gDrive.files.list().then(({ data }) => data) as any;
     }
 
     move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {

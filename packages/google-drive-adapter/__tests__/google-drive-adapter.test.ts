@@ -1,10 +1,15 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable camelcase */
 import fs from 'fs';
 import { join } from 'path';
 import readline from 'readline';
 import { google, Auth } from 'googleapis';
 import { Filesystem } from '@draft-flysystem-ts/flysystem';
+import { inspect } from 'util';
 import { GoogleDriveAdapter } from '../src';
+
+const log = (...args: any[]) => args.forEach((a) => console.log(inspect(a, { colors: true, depth: null })));
 
 type CredentialsType = Record<string, any> & { web: any };
 type OAuth2Client = Auth.OAuth2Client;
@@ -95,14 +100,24 @@ describe('GoogleDriveAdapter testing', () => {
     beforeAll(async () => {
         // Load client secrets from a local file.
         CREDENTIALS = JSON.parse(fs.readFileSync('credentials.json', { encoding: 'utf-8' }).toString()) as CredentialsType;
-        auth = await authorize(CREDENTIALS!);
-        flysystem = new Filesystem(new GoogleDriveAdapter(google.drive({ version: 'v3', auth })));
+        auth = await authorize(CREDENTIALS);
+        flysystem = new Filesystem(
+            new GoogleDriveAdapter(google.drive({ version: 'v3', auth })),
+        );
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
     it.only('Should return list of files', async () => {
         const res = await flysystem.listContents();
 
-        console.log(res);
+        log(res);
+
+        expect(res).toBeDefined();
+    }, 1000 * 40);
+
+    it('Should upload', async () => {
+        const res = await flysystem.write('hello', 'world');
+
+        log(res);
 
         expect(res).toBeDefined();
     });

@@ -28,6 +28,7 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "arrow-body-style": "off",
         "no-dupe-class-members": "off",
         "no-empty-pattern": "off",
         "indent": [

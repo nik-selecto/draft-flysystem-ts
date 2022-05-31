@@ -65,18 +65,26 @@ async function authorize(credentials: CredentialsType): Promise<OAuth2Client> {
     // Check if we have previously stored a token.
     return new Promise<OAuth2Client>((resolve) => {
         fs.readFile(join(__dirname, '..', TOKEN_PATH), (err, token) => {
-            if (err) return _getAccessToken(oAuth2Client).then(resolve);
+            if (!err) {
+                const creds = JSON.parse(token.toString()) || {};
+                const isFresh = (creds.expiry_date || 0) > (new Date().getTime() + 60 * 1000);
 
-            oAuth2Client.setCredentials(JSON.parse(token.toString()));
+                // Check if access is fresh otherwise - has json refresh
+                if (isFresh || creds.refresh_token) {
+                    oAuth2Client.setCredentials(creds);
 
-            return resolve(oAuth2Client);
+                    return resolve(oAuth2Client);
+                }
+            }
+
+            return _getAccessToken(oAuth2Client).then(resolve);
         });
     });
 }
 
 describe('GoogleDriveAdapter testing', () => {
     let flysystem: Filesystem<GoogleDriveAdapter>;
-
+    let auth: OAuth2Client;
     /**
      * AT FIRST TIME OF TEST'S RUN YOU SHOULD MANUALY CLICK TO LINK IN TERMINAL
      * IT WILL OPEN PAGE WITH ACCESS TOKEN
@@ -87,17 +95,15 @@ describe('GoogleDriveAdapter testing', () => {
     beforeAll(async () => {
         // Load client secrets from a local file.
         CREDENTIALS = JSON.parse(fs.readFileSync('credentials.json', { encoding: 'utf-8' }).toString()) as CredentialsType;
-
-        await authorize(CREDENTIALS!);
+        auth = await authorize(CREDENTIALS!);
+        flysystem = new Filesystem(new GoogleDriveAdapter(google.drive({ version: 'v3', auth })));
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
-    beforeEach(async () => {
-        const x = await authorize(CREDENTIALS!);
+    it.only('Should return list of files', async () => {
+        const res = await flysystem.listContents();
 
-        flysystem = new Filesystem(new GoogleDriveAdapter());
-    });
+        console.log(res);
 
-    it('mock test', async () => {
-        expect(flysystem).toBeInstanceOf(Filesystem);
+        expect(res).toBeDefined();
     });
 });

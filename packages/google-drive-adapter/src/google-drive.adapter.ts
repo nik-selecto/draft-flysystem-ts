@@ -6,8 +6,13 @@ import {
 } from '@draft-flysystem-ts/general';
 import { ReadStream } from 'fs';
 import { Readable } from 'stream';
+import { drive_v3 as v3 } from 'googleapis';
 
 export class GoogleDriveAdapter implements IFilesystemAdapter {
+    constructor(private gDrive: v3.Drive) {
+
+    }
+
     getPathPrefix(): PathPrefixer {
         throw new Error('Method not implemented.');
     }
@@ -69,7 +74,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        throw new Error('Method not implemented.');
+        return this.gDrive.files.list().then(({ data }) => data) as any;
     }
 
     move(source: string, destination: string, config?: Record<string, any> | undefined): Promise<void> {

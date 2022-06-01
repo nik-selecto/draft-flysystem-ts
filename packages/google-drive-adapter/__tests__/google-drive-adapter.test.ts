@@ -167,4 +167,15 @@ describe('GoogleDriveAdapter testing', () => {
 
         expect(res).toBe(false);
     }, 1000 * 10);
+
+    it.skip.each([
+        { path: 'A/AA3', isExists: true },
+        { path: 'N/O/S/U/C/H/F/O/L/D/E/R', isExists: false },
+    ])('Should return true because directory exist', async ({ path, isExists }) => {
+        const res = await flysystem.directoryExists(path);
+
+        log(res);
+
+        expect(res).toBe(isExists);
+    });
 });

@@ -116,8 +116,11 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         throw new Error('Method not implemented.');
     }
 
-    directoryExists(path: string): Promise<boolean> {
-        throw new Error('Method not implemented.');
+    async directoryExists(path: string): Promise<boolean> {
+        const { folders, idPath, pathId } = await this.virtualPathMapper.virtualize();
+        const _path = trimSlashes(path);
+
+        return !!pathId.get(_path);
     }
 
     async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {

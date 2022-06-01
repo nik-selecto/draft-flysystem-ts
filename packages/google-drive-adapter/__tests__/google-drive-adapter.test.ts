@@ -107,15 +107,44 @@ describe('GoogleDriveAdapter testing', () => {
         );
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
-    it('Should return list of files', async () => {
+    it.skip('Should return full list of files', async () => {
         const res = await flysystem.listContents();
 
         log(res);
 
-        expect(res).toBeDefined();
+        expect(res).toBeInstanceOf(Array);
+        expect(res.length).not.toBe(0);
     }, 1000 * 10);
 
-    it('Should upload', async () => {
+    it.skip('Should not contain any like "A" folders', async () => {
+        const res = await flysystem.listContents('C');
+
+        log(res);
+
+        expect(res).toBeInstanceOf(Array);
+        expect(res.some(({ path }) => /\/A+\//.test(path))).toBe(false);
+    }, 1000 * 10);
+
+    it.skip('Should return empty array', async () => {
+        const res = await flysystem.listContents('B');
+
+        log(res);
+
+        expect(res).toBeInstanceOf(Array);
+        expect(res.length).toBe(0);
+    }, 1000 * 10);
+
+    it.skip('Should return folder entries without recurcion', async () => {
+        const res = await flysystem.listContents('C', false);
+
+        log(res);
+
+        expect(res).toBeInstanceOf(Array);
+        expect(res.length).not.toBe(0);
+        expect(res.reduce((acc, item) => (item.isFile ? acc + 1 : acc), 0)).toBe(1);
+    }, 1000 * 10);
+
+    it.skip('Should upload', async () => {
         const res = await flysystem.write('hello', 'world');
 
         log(res);
@@ -123,7 +152,7 @@ describe('GoogleDriveAdapter testing', () => {
         expect(res).toBeDefined();
     });
 
-    it.only('Should return true because of file existing', async () => {
+    it.skip('Should return true because of file existing', async () => {
         const res = await flysystem.fileExists('/A/random.pdf');
 
         log(res);
@@ -131,7 +160,7 @@ describe('GoogleDriveAdapter testing', () => {
         expect(res).toBe(true);
     }, 1000 * 10);
 
-    it.only('Should return false because of file unexisting', async () => {
+    it.skip('Should return false because of file unexisting', async () => {
         const res = await flysystem.fileExists('/A/no-such-file.pdf');
 
         log(res);

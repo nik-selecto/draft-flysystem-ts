@@ -108,7 +108,7 @@ describe('GoogleDriveAdapter testing', () => {
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
     it.only('Should return list of files', async () => {
-        const res = await flysystem.listContents('/A/AA3', false);
+        const res = await flysystem.listContents();
 
         log(res);
 

@@ -2,13 +2,14 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-    FileAttributes, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
+    FileAttributes, FileType, IFilesystemAdapter, IFilesystemVisibility, IReadFileOptions, IStorageAttributes, PathPrefixer, RequireOne, Visibility,
 } from '@draft-flysystem-ts/general';
 import fs, { ReadStream } from 'fs';
 import { Readable } from 'stream';
 import { drive_v3 } from 'googleapis';
 import { VirtualPathMapper } from './virtual-path-mapper';
 import { FileListOptionsType, GoogleDriveApiExecutor } from './google-drive-api-executor';
+import { FOLDER_MIME_TYPE } from './google-drive.constants';
 
 function trimSlashes(str: string) {
     return `/${str.replace(/^\//, '').replace(/$\//, '')}`;
@@ -43,7 +44,6 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
 
                 return acc;
             }, [] as string[]);
-            console.log(matchedFolders);
 
             options.inWhichFolderOnly = matchedFolders.length
                 ? ` and (${matchedFolders.join(' or ')}) ` as any
@@ -52,11 +52,28 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
             options.inWhichFolderOnly = ` and "${folderId}" in parents `;
         }
 
-        console.log(options.inWhichFolderOnly);
-
-        return GoogleDriveApiExecutor
+        const { files } = await GoogleDriveApiExecutor
             .req(this.gDrive)
-            .filesList(options).then(({ files }) => files) as any;
+            .filesList(options);
+
+        return files.map((file) => {
+            const isDir = file.mimeType === FOLDER_MIME_TYPE;
+            const isFile = !isDir;
+            const type = isDir ? FileType.dir : FileType.file;
+            const lastModified = file.modifiedTime
+                ? new Date(file.modifiedTime).getTime()
+                : undefined;
+
+            return {
+                isDir,
+                isFile,
+                type,
+                path: idPath.get(file.id!) || `${idPath.get(String(file.parents?.at(-1)))}/${file.name}`,
+                lastModified,
+                size: file.size ? parseFloat(file.size!) : undefined,
+                visibility: file.copyRequiresWriterPermission ?? false ? Visibility.PRIVATE : Visibility.PUBLIC,
+            };
+        });
     }
 
     getPathPrefix(): PathPrefixer {

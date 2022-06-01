@@ -7,14 +7,20 @@ type TrashedType = ' and trashed = false '
     | '';
 type FolderOptionType = ` and mimeType ${'=' | '!='} "${typeof FOLDER_MIME_TYPE}" `
     | '';
-type FieldsInFileType = 'id' | 'parents' | 'name' | 'mimeType'; // TODO complete
+type FieldsInFileType = 'id'
+    | 'parents'
+    | 'modifiedTime'
+    | 'name'
+    | 'mimeType'
+    | 'size'
+    | 'copyRequiresWriterPermission'; // TODO complete
 type FieldsType = 'nextPageToken'
     | ''; // TODO complete
 export type FileListOptionsType = {
     visibility?: VisibilityType,
     trashed?: TrashedType,
     folderOption?: FolderOptionType,
-    fieldsInFile?: [FieldsInFileType, ...FieldsInFileType[]],
+    fieldsInFile?: [FieldsInFileType, ...FieldsInFileType[]] | ['*'],
     fields?: FieldsType[],
     pageSize?: number,
     pageToken?: string | null,
@@ -38,7 +44,7 @@ export class GoogleDriveApiExecutor {
             trashed = ' and trashed = false ',
             pageSize = PAGE_SIZE_FOR_FOLDER_REQ,
             fields = ['nextPageToken'],
-            fieldsInFile = ['id', 'mimeType', 'name', 'parents'],
+            fieldsInFile = ['id', 'mimeType', 'name', 'parents', 'modifiedTime', 'copyRequiresWriterPermission', 'size'],
             folderOption = '',
             inWhichFolderOnly = '',
             pageToken,

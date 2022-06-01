@@ -76,11 +76,43 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
         });
     }
 
-    getPathPrefix(): PathPrefixer {
-        throw new Error('Method not implemented.');
+    // TODO What we should do, if the file name will contains "/" character???
+    async fileExists(path: string): Promise<boolean> {
+        const { folders, idPath, pathId } = await this.virtualPathMapper.virtualize();
+        const _path = trimSlashes(path);
+        const [fileName] = _path.match(/(?!\/)[^\/]+$/) || [];
+        const folderPath = _path.slice(0, path.lastIndexOf(fileName));
+        const folderId = pathId.get(folderPath);
+
+        if (!folderId) {
+            throw new Error(`Any directory by such path "${path}" (interpreted as "${folderPath}").`);
+        }
+
+        let nextPageToken: string | null | undefined;
+        let exists = false;
+
+        do {
+            // eslint-disable-next-line no-await-in-loop
+            const res = await GoogleDriveApiExecutor
+                .req(this.gDrive)
+                .filesList({
+                    inWhichFolderOnly: ` and "${folderId}" in parents `,
+                    fields: ['nextPageToken'],
+                    fieldsInFile: ['name'],
+                });
+
+            exists = res.files.some((f) => f.name! === fileName);
+            nextPageToken = res.nextPageToken;
+
+            if (exists) {
+                return true;
+            }
+        } while (nextPageToken);
+
+        return exists;
     }
 
-    fileExists(path: string): Promise<boolean> {
+    getPathPrefix(): PathPrefixer {
         throw new Error('Method not implemented.');
     }
 

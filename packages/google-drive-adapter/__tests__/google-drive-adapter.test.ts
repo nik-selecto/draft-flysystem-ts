@@ -107,13 +107,13 @@ describe('GoogleDriveAdapter testing', () => {
         );
     }, WAIT_FRO_MANUAL_INPUT + 5 * 10000); // little more than input to give chance correct error appear in console in case of fail
 
-    it.only('Should return list of files', async () => {
+    it('Should return list of files', async () => {
         const res = await flysystem.listContents();
 
         log(res);
 
         expect(res).toBeDefined();
-    }, 1000 * 40);
+    }, 1000 * 10);
 
     it('Should upload', async () => {
         const res = await flysystem.write('hello', 'world');
@@ -122,4 +122,20 @@ describe('GoogleDriveAdapter testing', () => {
 
         expect(res).toBeDefined();
     });
+
+    it.only('Should return true because of file existing', async () => {
+        const res = await flysystem.fileExists('/A/random.pdf');
+
+        log(res);
+
+        expect(res).toBe(true);
+    }, 1000 * 10);
+
+    it.only('Should return false because of file unexisting', async () => {
+        const res = await flysystem.fileExists('/A/no-such-file.pdf');
+
+        log(res);
+
+        expect(res).toBe(false);
+    }, 1000 * 10);
 });

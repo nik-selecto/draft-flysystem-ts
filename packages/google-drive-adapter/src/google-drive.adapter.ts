@@ -6,29 +6,57 @@ import {
 } from '@draft-flysystem-ts/general';
 import fs, { ReadStream } from 'fs';
 import { Readable } from 'stream';
-import { drive_v3 as v3 } from 'googleapis';
+import { drive_v3 } from 'googleapis';
 import { VirtualPathMapper } from './virtual-path-mapper';
+import { FileListOptionsType, GoogleDriveApiExecutor } from './google-drive-api-executor';
 
 function trimSlashes(str: string) {
     return `/${str.replace(/^\//, '').replace(/$\//, '')}`;
 }
 export class GoogleDriveAdapter implements IFilesystemAdapter {
-    constructor(
-        // private tsGoogleDrive: TsGoogleDrive,
-        private gDrive: v3.Drive,
-    ) {
+    private virtualPathMapper!: VirtualPathMapper;
 
+    constructor(
+        private gDrive: drive_v3.Drive,
+    ) {
+        this.virtualPathMapper = new VirtualPathMapper(gDrive);
     }
 
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        const folders = await new VirtualPathMapper(this.gDrive).virtualize();
+        const { folders, idPath, pathId } = await this.virtualPathMapper.virtualize();
         const _path = trimSlashes(path);
+        const folderId = pathId.get(_path);
 
-        if (!folders.includes(_path)) {
-            throw new Error(`No such directory found. ("${path}")`);
+        if (!folderId) {
+            throw new Error(`Any directory by such path "${path}" (interpreted as "${_path}").`);
         }
 
-        return folders as any;
+        const options: FileListOptionsType = {
+            fields: [],
+        };
+
+        if (deep) {
+            const matchedFolders = folders.reduce((acc, pathToFolder) => {
+                if (pathToFolder.indexOf(_path) === 0) {
+                    acc.push(`"${pathId.get(pathToFolder)}" in parents`);
+                }
+
+                return acc;
+            }, [] as string[]);
+            console.log(matchedFolders);
+
+            options.inWhichFolderOnly = matchedFolders.length
+                ? ` and (${matchedFolders.join(' or ')}) ` as any
+                : ` and "${folderId}" in parents `;
+        } else {
+            options.inWhichFolderOnly = ` and "${folderId}" in parents `;
+        }
+
+        console.log(options.inWhichFolderOnly);
+
+        return GoogleDriveApiExecutor
+            .req(this.gDrive)
+            .filesList(options).then(({ files }) => files) as any;
     }
 
     getPathPrefix(): PathPrefixer {

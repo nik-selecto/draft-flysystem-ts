@@ -28,6 +28,8 @@
         "@typescript-eslint"
     ],
     "rules": {
+        "no-useless-escape": "off",
+        "camelcase": "off",
         "arrow-body-style": "off",
         "no-dupe-class-members": "off",
         "no-empty-pattern": "off",

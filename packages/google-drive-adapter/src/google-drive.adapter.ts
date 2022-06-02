@@ -7,6 +7,7 @@ import {
 import fs, { ReadStream } from 'fs';
 import { Readable } from 'stream';
 import { drive_v3 } from 'googleapis';
+import { inspect } from 'util';
 import { VirtualPathMapper } from './virtual-path-mapper';
 import { FileListOptionsType, GoogleDriveApiExecutor } from './google-drive-api-executor';
 import { FOLDER_MIME_TYPE } from './google-drive.constants';
@@ -24,7 +25,9 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     async listContents(path: string, deep: boolean): Promise<IStorageAttributes[]> {
-        const { folders, idPath, pathId } = await this.virtualPathMapper.virtualize();
+        const res = await this.virtualPathMapper.virtualize();
+        const { folders, idPath, pathId } = res;
+        console.log(inspect(res, { depth: null, colors: true }));
         const _path = trimSlashes(path);
         const folderId = pathId.get(_path);
 
@@ -56,6 +59,8 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
             .req(this.gDrive)
             .filesList(options);
 
+        console.log(files);
+
         return files.map((file) => {
             const isDir = file.mimeType === FOLDER_MIME_TYPE;
             const isFile = !isDir;
@@ -63,7 +68,7 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
             const lastModified = file.modifiedTime
                 ? new Date(file.modifiedTime).getTime()
                 : undefined;
-
+            // TODO concrete types
             return {
                 isDir,
                 isFile,
@@ -124,20 +129,19 @@ export class GoogleDriveAdapter implements IFilesystemAdapter {
     }
 
     async write(path: string, contents: string | Buffer, config?: IFilesystemVisibility | undefined): Promise<void> {
-        try {
-            const res = await this.gDrive.files.create({
-                media: {
-                    body: contents,
-                },
-            });
+        const { folders, idPath, pathId } = await this.virtualPathMapper.virtualize();
+        const _path = trimSlashes(path);
+        const [fileName] = _path.match(/(?!\/)[^\/]+$/) || [];
+        const folderPath = _path.slice(0, path.lastIndexOf(fileName));
+        const folderId = pathId.get(folderPath);
 
-            return res as any;
-        } catch (error) {
-            console.error(error);
-            console.error('! ! !');
+        if (!folderId) {
+            throw new Error(`Any directory by such path "${path}" (interpreted as "${folderPath}").`);
         }
 
-        return null as any;
+        await GoogleDriveApiExecutor
+            .req(this.gDrive)
+            .simpleFilesCreate(folderId, fileName, contents);
     }
 
     writeStream(path: string, resource: Readable, config?: IFilesystemVisibility | undefined): Promise<void> {

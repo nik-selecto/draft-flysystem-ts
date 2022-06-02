@@ -116,7 +116,7 @@ describe('GoogleDriveAdapter testing', () => {
         expect(res.length).not.toBe(0);
     }, 1000 * 10);
 
-    it.skip('Should not contain any like "A" folders', async () => {
+    it.only('Should not contain any like "A" folders', async () => {
         const res = await flysystem.listContents('C');
 
         log(res);
@@ -177,5 +177,16 @@ describe('GoogleDriveAdapter testing', () => {
         log(res);
 
         expect(res).toBe(isExists);
+    });
+
+    it.skip('Should upload file', async () => {
+        const path = `C/CC/photo-${new Date().getTime()}.jpg`;
+
+        await flysystem.write(
+            path,
+            Buffer.from(fs.readFileSync(join(__dirname, '../../..', 'photo-for-test.jpg'), { encoding: 'utf-8' })),
+        );
+
+        expect(await flysystem.fileExists(path)).toBe(true);
     });
 });

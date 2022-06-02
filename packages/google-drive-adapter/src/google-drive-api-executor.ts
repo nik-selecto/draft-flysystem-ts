@@ -65,4 +65,17 @@ export class GoogleDriveApiExecutor {
             ...(pageToken && { pageToken }),
         }).then(({ data: { nextPageToken, files = [] } }) => ({ nextPageToken, files }));
     }
+
+    simpleFilesCreate(parentId: string, name: string, body: string | Buffer) {
+        console.log(body);
+        return this.gDrive.files.create({
+            requestBody: {
+                parents: [parentId],
+                name,
+            },
+            media: {
+                body,
+            },
+        });
+    }
 }
